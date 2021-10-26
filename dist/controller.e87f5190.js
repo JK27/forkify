@@ -880,11 +880,13 @@ try {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TIMEOUT_SEC = exports.API_URL = void 0;
+exports.TIMEOUT_SEC = exports.RESULTS_PER_PAGE = exports.API_URL = void 0;
 var API_URL = "https://forkify-api.herokuapp.com/api/v2/recipes/";
 exports.API_URL = API_URL;
 var TIMEOUT_SEC = 10;
 exports.TIMEOUT_SEC = TIMEOUT_SEC;
+var RESULTS_PER_PAGE = 100;
+exports.RESULTS_PER_PAGE = RESULTS_PER_PAGE;
 },{}],"src/js/helpers.js":[function(require,module,exports) {
 "use strict";
 
@@ -965,7 +967,7 @@ exports.getJSON = getJSON;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.state = exports.loadSearchResults = exports.loadRecipe = void 0;
+exports.state = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResutlsPage = void 0;
 
 var _regeneratorRuntime = require("regenerator-runtime");
 
@@ -977,15 +979,17 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-///////////////////////////////////////////////// STATE FUNC
+///////////////////////////////////////////////////////////////////// STATE FUNC
 // DOES => Contains all data needed to build application
 var state = {
   recipe: {},
   search: {
     query: "",
-    results: []
+    results: [],
+    page: 1,
+    resultsPerPage: _config.RESULTS_PER_PAGE
   }
-}; ///////////////////////////////////////////////// LOAD RECIPE
+}; ///////////////////////////////////////////////////////////////////// LOAD RECIPE
 ////////// FUNCTIONALITY => Loads recipe with specific ID
 
 exports.state = state;
@@ -1035,7 +1039,7 @@ var loadRecipe = /*#__PURE__*/function () {
   return function loadRecipe(_x) {
     return _ref.apply(this, arguments);
   };
-}(); ///////////////////////////////////////////////// SEARCH FUNCTINOALITY
+}(); ///////////////////////////////////////////////////////////////////// SEARCH FUNCTINOALITY
 // FUNCTIONALITY => Searches for recipes based on search input (query)
 
 
@@ -1085,9 +1089,22 @@ var loadSearchResults = /*#__PURE__*/function () {
   return function loadSearchResults(_x2) {
     return _ref2.apply(this, arguments);
   };
-}();
+}(); ///////////////////////////////////////////////////////////////////// GET SEARCH RESULTS PAGE
+// FUNCTIONALITY => Returns the search results, by default starting on page 1
+
 
 exports.loadSearchResults = loadSearchResults;
+
+var getSearchResutlsPage = function getSearchResutlsPage() {
+  var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : state.search.page;
+  state.search.page = page;
+  var start = (page - 1) * state.search.resultsPerPage;
+  var end = page * state.search.resultsPerPage; // DOES => Returns search results in intervals of 10 at a time
+
+  return state.search.results.slice(start, end);
+};
+
+exports.getSearchResutlsPage = getSearchResutlsPage;
 },{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js","./config.js":"src/js/config.js","./helpers.js":"src/js/helpers.js"}],"src/img/icons.svg":[function(require,module,exports) {
 module.exports = "/icons.ae3c38d5.svg";
 },{}],"src/js/views/view.js":[function(require,module,exports) {
@@ -1111,7 +1128,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 // DOES => Imports icons to be used in markup
-///////////////////////////////////////////////// VIEW CLASS
+///////////////////////////////////////////////////////////////////// VIEW CLASS
 var View = /*#__PURE__*/function () {
   function View() {
     _classCallCheck(this, View);
@@ -1121,7 +1138,7 @@ var View = /*#__PURE__*/function () {
 
   _createClass(View, [{
     key: "render",
-    value: //////////////////////////////// RENDER METHOD
+    value: //////////////////////////////////////////////////// RENDER METHOD
     // FUNCTIONALITY => Stores data received from controller.showRecipe
     function render(data) {
       // DOES => Guard clause. If there is no data or if data is an empty array, simply return and display error message
@@ -1134,13 +1151,14 @@ var View = /*#__PURE__*/function () {
 
 
       this._parentElement.insertAdjacentHTML("afterbegin", markup);
-    } // FUNCTIONALITY => Empties recipe container before inserting markup above
+    } //////////////////////////////////////////////////// CLEAR
+    // FUNCTIONALITY => Empties recipe container before inserting markup above
 
   }, {
     key: "_clear",
     value: function _clear() {
       this._parentElement.innerHTML = "";
-    } //////////////////////////////// RENDER SPINNER
+    } //////////////////////////////////////////////////// RENDER SPINNER
     ////////// FUNCTIONALITY => Inserts spinner svg into recipe container HTML el while loading the page
 
   }, {
@@ -1151,7 +1169,7 @@ var View = /*#__PURE__*/function () {
       this._clear();
 
       this._parentElement.insertAdjacentHTML("afterbegin", markup);
-    } //////////////////////////////// RENDER ERROR
+    } //////////////////////////////////////////////////// RENDER ERROR
     // FUNCTIONALITY => Displays error message, using #errorMessage as default
 
   }, {
@@ -1163,7 +1181,7 @@ var View = /*#__PURE__*/function () {
       this._clear();
 
       this._parentElement.insertAdjacentHTML("afterbegin", markup);
-    } //////////////////////////////// RENDER MESSAGE
+    } //////////////////////////////////////////////////// RENDER MESSAGE
     // FUNCTIONALITY => Displays  message, using #message as default
 
   }, {
@@ -1591,7 +1609,7 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-///////////////////////////////////////////////// RECIPE VIEW
+///////////////////////////////////////////////////////////////////// RECIPE VIEW
 var RecipeView = /*#__PURE__*/function (_View) {
   _inherits(RecipeView, _View);
 
@@ -1619,7 +1637,7 @@ var RecipeView = /*#__PURE__*/function (_View) {
 
   _createClass(RecipeView, [{
     key: "addHandlerRender",
-    value: //////////////////////////////// ADD HANDLER RENDER METHOD
+    value: //////////////////////////////////////////////////// ADD HANDLER RENDER METHOD
     function addHandlerRender(handler) {
       ///////////////////////////////////////////////// HASHCHANGE & LOAD LISTENERS
       // DOES => When the hash referring to the recipe ID on the url changes, it shows the recipe with that ID
@@ -1631,13 +1649,13 @@ var RecipeView = /*#__PURE__*/function (_View) {
         window.addEventListener("hashchange", controlRecipes);
         window.addEventListener("load", controlRecipes);
         */
-    } //////////////////////////////// GENERATE MARKUP METHOD
+    } //////////////////////////////////////////////////// GENERATE MARKUP METHOD
 
   }, {
     key: "_generateMarkup",
     value: function _generateMarkup() {
       return "\n    <figure class=\"recipe__fig\">\n          <img src=\"".concat(this._data.image, "\" alt=\"").concat(this._data.title, "\" class=\"recipe__img\" />\n          <h1 class=\"recipe__title\">\n            <span>").concat(this._data.title, "</span>\n          </h1>\n        </figure>\n\n        <div class=\"recipe__details\">\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-clock\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--minutes\">").concat(this._data.cookingTime, "</span>\n            <span class=\"recipe__info-text\">minutes</span>\n          </div>\n\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-users\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--people\">").concat(this._data.servings, "</span>\n            <span class=\"recipe__info-text\">servings</span>\n\n            <div class=\"recipe__info-buttons\">\n              <button class=\"btn--tiny btn--increase-servings\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-minus-circle\"></use>\n                </svg>\n              </button>\n              <button class=\"btn--tiny btn--increase-servings\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-plus-circle\"></use>\n                </svg>\n              </button>\n            </div>\n          </div>\n\n          <div class=\"recipe__user-generated\">\n          </div>\n          <button class=\"btn--round\">\n            <svg class=\"\">\n              <use href=\"").concat(_icons.default, "#icon-bookmark-fill\"></use>\n            </svg>\n          </button>\n        </div>\n\n        <div class=\"recipe__ingredients\">\n          <h2 class=\"heading--2\">Recipe ingredients</h2>\n          <ul class=\"recipe__ingredient-list\">\n          ").concat(this._data.ingredients.map(this._generateMarkupIngredient).join(""), "            \n          </ul>\n        </div>\n\n        <div class=\"recipe__directions\">\n          <h2 class=\"heading--2\">How to cook it</h2>\n          <p class=\"recipe__directions-text\">\n            This recipe was carefully designed and tested by\n            <span class=\"recipe__publisher\">").concat(this._data.publisher, "</span>. Please check out\n            directions at their website.\n          </p>\n          <a\n            class=\"btn--small recipe__btn\"\n            href=\"").concat(this._data.sourceUrl, "\"\n            target=\"_blank\"\n          >\n            <span>Directions</span>\n            <svg class=\"search__icon\">\n              <use href=\"").concat(_icons.default, "#icon-arrow-right\"></use>\n            </svg>\n          </a>\n        </div>");
-    } //////////////////////////////// GENERATE MARKUP INGREDIENT METHOD
+    } //////////////////////////////////////////////////// GENERATE MARKUP INGREDIENT METHOD
 
   }, {
     key: "_generateMarkupIngredient",
@@ -1668,7 +1686,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-///////////////////////////////////////////////// SEARCH VIEW
+///////////////////////////////////////////////////////////////////// SEARCH VIEW
 var SearchView = /*#__PURE__*/function () {
   function SearchView() {
     _classCallCheck(this, SearchView);
@@ -1678,7 +1696,7 @@ var SearchView = /*#__PURE__*/function () {
 
   _createClass(SearchView, [{
     key: "getQuery",
-    value: //////////////////////////////// GET QUERY
+    value: //////////////////////////////////////////////////// GET QUERY
     // FUNCTIONALITY => Gets value from search input field and returns the query
     function getQuery() {
       var query = this._parentElement.querySelector(".search__field").value;
@@ -1686,14 +1704,14 @@ var SearchView = /*#__PURE__*/function () {
       this._clearInput();
 
       return query;
-    } //////////////////////////////// CLEAR INPUT
+    } //////////////////////////////////////////////////// CLEAR INPUT
     // FUNCTIONALITY => Clears search input field after submission
 
   }, {
     key: "_clearInput",
     value: function _clearInput() {
       this._parentElement.querySelector(".search__field").value = "";
-    } //////////////////////////////// SEARCH EVENT HANDLER
+    } //////////////////////////////////////////////////// SEARCH EVENT HANDLER
     // FUNCTIONALITY => Listens for search form submission and returns search results
 
   }, {
@@ -1752,7 +1770,7 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 // DOES => Imports icons to be used in markup
-///////////////////////////////////////////////// RESULTS VIEW
+///////////////////////////////////////////////////////////////////// RESULTS VIEW
 var ResultsView = /*#__PURE__*/function (_View) {
   _inherits(ResultsView, _View);
 
@@ -1780,11 +1798,13 @@ var ResultsView = /*#__PURE__*/function (_View) {
 
   _createClass(ResultsView, [{
     key: "_generateMarkup",
-    value: // FUNCTIONALITY => Generates markup getting data from search results and looping through all of them
+    value: //////////////////////////////////////////////////// GENERATE MARKUP
+    // FUNCTIONALITY => Generates markup getting data from search results and looping through all of them
     function _generateMarkup() {
       console.log(this._data);
       return this._data.map(this._generateMarkupPreview).join("");
-    }
+    } //////////////////////////////////////////////////// GENERATE MARKUP PREVIEW
+
   }, {
     key: "_generateMarkupPreview",
     value: function _generateMarkupPreview(result) {
@@ -1796,6 +1816,122 @@ var ResultsView = /*#__PURE__*/function (_View) {
 }(_view.default);
 
 var _default = new ResultsView();
+
+exports.default = _default;
+},{"./view":"src/js/views/view.js","../../img/icons.svg":"src/img/icons.svg"}],"src/js/views/paginationView.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _view = _interopRequireDefault(require("./view"));
+
+var _icons = _interopRequireDefault(require("../../img/icons.svg"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// DOES => Imports icons to be used in markup
+///////////////////////////////////////////////////////////////////// PAGINATION VIEW
+var PaginationView = /*#__PURE__*/function (_View) {
+  _inherits(PaginationView, _View);
+
+  var _super = _createSuper(PaginationView);
+
+  function PaginationView() {
+    var _this;
+
+    _classCallCheck(this, PaginationView);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+
+    _defineProperty(_assertThisInitialized(_this), "_parentElement", document.querySelector(".pagination"));
+
+    return _this;
+  }
+
+  _createClass(PaginationView, [{
+    key: "addHandlerClick",
+    value: //////////////////////////////////////////////////// ADD HANDLER CLICK
+    function addHandlerClick(handler) {
+      this._parentElement.addEventListener("click", function (e) {
+        var btn = e.target.closest(".btn--inline");
+        if (!btn) return;
+        var goToPage = +btn.dataset.goto;
+        handler(goToPage);
+      });
+    } //////////////////////////////////////////////////// GENERATE MARKUP
+
+  }, {
+    key: "_generateMarkup",
+    value: function _generateMarkup() {
+      var currPage = this._data.page; // DOES => Calculates number of pages dividing the number of search results by the number of resutls per page and rounding the result up to the next integer
+
+      var numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
+      console.log(numPages); // FUNCTIONALITY => First page and there are mor pages
+      // DOES => If current page equals 1, and the total number of pages is greater than 1; it means we are on the first page. Therefore, only display the next page button
+
+      if (currPage === 1 && numPages > 1) {
+        return this._generateMarkupBtn("next", currPage);
+      } // FUNCTIONALITY => Last page
+      // DOES => If current page equals total number of pages, and the total number of pages is greater than 1; it means we are on the last page. Therefore, only display the previous page button
+
+
+      if (currPage === numPages && numPages > 1) {
+        return this._generateMarkupBtn("prev", currPage);
+      } // FUNCTIONALITY => Middle pages
+      // DOES => If current page is lower than total number of pages; it means we are on a middle page. Therefore, display both the previous and the next page buttons
+
+
+      if (currPage < numPages) {
+        return "".concat(this._generateMarkupBtn("next", currPage)).concat(this._generateMarkupBtn("prev", currPage), "\n      ");
+      } // FUNCTIONALITY => First page and NO more pages
+      // DOES => If nothing of the above applies; it means that we are on the first and only page. Therefore, display no buttons
+
+
+      return "";
+    } //////////////////////////////////////////////////// GENERATE MARKUP BUTTONS
+
+  }, {
+    key: "_generateMarkupBtn",
+    value: function _generateMarkupBtn(direction, currPage) {
+      return "\n      <button data-goto=\"".concat(direction === "next" ? currPage + 1 : currPage - 1, "\" class=\"btn--inline pagination__btn--").concat(direction, "\">\n        ").concat(direction === "next" ? "<span>Page ".concat(currPage + 1, "</span>") : "", "\n        <svg class=\"search__icon\">\n          <use href=\"").concat(_icons.default, "#icon-arrow-").concat(direction === "next" ? "right" : "left", "\"></use>\n        </svg>\n        ").concat(direction === "prev" ? "<span>Page ".concat(currPage - 1, "</span>") : "", "\n      </button>\n    ");
+    }
+  }]);
+
+  return PaginationView;
+}(_view.default);
+
+var _default = new PaginationView();
 
 exports.default = _default;
 },{"./view":"src/js/views/view.js","../../img/icons.svg":"src/img/icons.svg"}],"node_modules/core-js/internals/global.js":[function(require,module,exports) {
@@ -14293,6 +14429,8 @@ var _searchView = _interopRequireDefault(require("./views/searchView.js"));
 
 var _resultsView = _interopRequireDefault(require("./views/resultsView.js"));
 
+var _paginationView = _interopRequireDefault(require("./views/paginationView.js"));
+
 require("core-js/stable");
 
 require("regenerator-runtime/runtime");
@@ -14310,11 +14448,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // DOES => Polyfilling async await
 if (module.hot) {
   module.hot.accept();
-} ///////////////////////////////////////////////// REGENARATOR RUNTIME
+} ///////////////////////////////////////////////////////////////////// REGENARATOR RUNTIME
 
 
 var _require = require("regenerator-runtime"),
-    async = _require.async; ///////////////////////////////////////////////// CONTROL RECIPES FUNC
+    async = _require.async; ///////////////////////////////////////////////////////////////////// CONTROL RECIPES FUNC
 
 
 var controlRecipes = /*#__PURE__*/function () {
@@ -14369,7 +14507,7 @@ var controlRecipes = /*#__PURE__*/function () {
   return function controlRecipes() {
     return _ref.apply(this, arguments);
   };
-}(); ///////////////////////////////////////////////// CONTROL SEARCH RESULTS FUNC
+}(); ///////////////////////////////////////////////////////////////////// CONTROL SEARCH RESULTS FUNC
 
 
 var controlSearchResults = /*#__PURE__*/function () {
@@ -14399,38 +14537,53 @@ var controlSearchResults = /*#__PURE__*/function () {
 
           case 7:
             // FUNCTIONALITY => Render search results
-            _resultsView.default.render(model.state.search.results);
+            // resultsView.render(model.state.search.results);
+            _resultsView.default.render(model.getSearchResutlsPage()); // FUNCTIONALITY => Render initial pagination buttons
 
-            _context2.next = 13;
+
+            _paginationView.default.render(model.state.search);
+
+            _context2.next = 14;
             break;
 
-          case 10:
-            _context2.prev = 10;
+          case 11:
+            _context2.prev = 11;
             _context2.t0 = _context2["catch"](0);
             console.log(_context2.t0);
 
-          case 13:
+          case 14:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[0, 10]]);
+    }, _callee2, null, [[0, 11]]);
   }));
 
   return function controlSearchResults() {
     return _ref2.apply(this, arguments);
   };
-}(); ///////////////////////////////////////////////// INIT FUNC
+}(); ///////////////////////////////////////////////////////////////////// CONTROL PAGINATION FUNC
+
+
+var controlPagination = function controlPagination(goToPage) {
+  // FUNCTIONALITY => Render new results for selected page
+  _resultsView.default.render(model.getSearchResutlsPage(goToPage)); // FUNCTIONALITY => Render new pagination buttons
+
+
+  _paginationView.default.render(model.state.search);
+}; ///////////////////////////////////////////////////////////////////// INIT FUNC
 
 
 var init = function init() {
   _recipeView.default.addHandlerRender(controlRecipes);
 
   _searchView.default.addHandlerSearch(controlSearchResults);
+
+  _paginationView.default.addHandlerClick(controlPagination);
 };
 
 init();
-},{"./model.js":"src/js/model.js","./views/recipeView.js":"src/js/views/recipeView.js","./views/searchView.js":"src/js/views/searchView.js","./views/resultsView.js":"src/js/views/resultsView.js","core-js/stable":"node_modules/core-js/stable/index.js","regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","regenerator-runtime":"node_modules/regenerator-runtime/runtime.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./model.js":"src/js/model.js","./views/recipeView.js":"src/js/views/recipeView.js","./views/searchView.js":"src/js/views/searchView.js","./views/resultsView.js":"src/js/views/resultsView.js","./views/paginationView.js":"src/js/views/paginationView.js","core-js/stable":"node_modules/core-js/stable/index.js","regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","regenerator-runtime":"node_modules/regenerator-runtime/runtime.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -14458,7 +14611,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49291" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55911" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

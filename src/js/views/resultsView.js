@@ -1,19 +1,22 @@
-///////////////////////////////////////////////// IMPORTS
+///////////////////////////////////////////////////////////////////// IMPORTS
 import View from "./view";
 import icons from "../../img/icons.svg"; // DOES => Imports icons to be used in markup
 
-///////////////////////////////////////////////// RESULTS VIEW
+///////////////////////////////////////////////////////////////////// RESULTS VIEW
 class ResultsView extends View {
+	//////////////////////////////// PROTECTED METHODS
 	_parentElement = document.querySelector(".results");
 	_errorMessage = "No results found. Please try another search.";
 	_message = "";
 
+	//////////////////////////////////////////////////// GENERATE MARKUP
 	// FUNCTIONALITY => Generates markup getting data from search results and looping through all of them
 	_generateMarkup() {
 		console.log(this._data);
 		return this._data.map(this._generateMarkupPreview).join("");
 	}
 
+	//////////////////////////////////////////////////// GENERATE MARKUP PREVIEW
 	_generateMarkupPreview(result) {
 		return `
       <li class="preview">

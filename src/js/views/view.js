@@ -1,10 +1,11 @@
-///////////////////////////////////////////////// IMPORTS
+///////////////////////////////////////////////////////////////////// IMPORTS
 import icons from "../../img/icons.svg"; // DOES => Imports icons to be used in markup
 
-///////////////////////////////////////////////// VIEW CLASS
+///////////////////////////////////////////////////////////////////// VIEW CLASS
 export default class View {
+	//////////////////////////////////////////////////// PROTECTED METHODS
 	_data;
-	//////////////////////////////// RENDER METHOD
+	//////////////////////////////////////////////////// RENDER METHOD
 	// FUNCTIONALITY => Stores data received from controller.showRecipe
 	render(data) {
 		// DOES => Guard clause. If there is no data or if data is an empty array, simply return and display error message
@@ -19,12 +20,13 @@ export default class View {
 		this._parentElement.insertAdjacentHTML("afterbegin", markup);
 	}
 
+	//////////////////////////////////////////////////// CLEAR
 	// FUNCTIONALITY => Empties recipe container before inserting markup above
 	_clear() {
 		this._parentElement.innerHTML = "";
 	}
 
-	//////////////////////////////// RENDER SPINNER
+	//////////////////////////////////////////////////// RENDER SPINNER
 	////////// FUNCTIONALITY => Inserts spinner svg into recipe container HTML el while loading the page
 	renderSpinner() {
 		const markup = `
@@ -39,7 +41,7 @@ export default class View {
 		this._parentElement.insertAdjacentHTML("afterbegin", markup);
 	}
 
-	//////////////////////////////// RENDER ERROR
+	//////////////////////////////////////////////////// RENDER ERROR
 	// FUNCTIONALITY => Displays error message, using #errorMessage as default
 	renderError(message = this._errorMessage) {
 		const markup = `
@@ -58,7 +60,7 @@ export default class View {
 		this._parentElement.insertAdjacentHTML("afterbegin", markup);
 	}
 
-	//////////////////////////////// RENDER MESSAGE
+	//////////////////////////////////////////////////// RENDER MESSAGE
 	// FUNCTIONALITY => Displays  message, using #message as default
 	renderMessage(message = this._message) {
 		const markup = `

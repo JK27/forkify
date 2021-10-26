@@ -1,16 +1,16 @@
-///////////////////////////////////////////////// IMPORTS
+///////////////////////////////////////////////////////////////////// IMPORTS
 import View from "./view";
 import icons from "../../img/icons.svg"; // DOES => Imports icons to be used in markup
 import { Fraction } from "fractional";
 
-///////////////////////////////////////////////// RECIPE VIEW
+///////////////////////////////////////////////////////////////////// RECIPE VIEW
 class RecipeView extends View {
-	//////////////////////////////// PROTECTED METHODS
+	//////////////////////////////////////////////////// PROTECTED METHODS
 	_parentElement = document.querySelector(".recipe");
 	_errorMessage = "Recipe not found. Please try another search.";
 	_message = "";
 
-	//////////////////////////////// ADD HANDLER RENDER METHOD
+	//////////////////////////////////////////////////// ADD HANDLER RENDER METHOD
 	addHandlerRender(handler) {
 		///////////////////////////////////////////////// HASHCHANGE & LOAD LISTENERS
 		// DOES => When the hash referring to the recipe ID on the url changes, it shows the recipe with that ID
@@ -22,7 +22,7 @@ class RecipeView extends View {
     */
 	}
 
-	//////////////////////////////// GENERATE MARKUP METHOD
+	//////////////////////////////////////////////////// GENERATE MARKUP METHOD
 	_generateMarkup() {
 		return `
     <figure class="recipe__fig">
@@ -108,7 +108,7 @@ class RecipeView extends View {
         </div>`;
 	}
 
-	//////////////////////////////// GENERATE MARKUP INGREDIENT METHOD
+	//////////////////////////////////////////////////// GENERATE MARKUP INGREDIENT METHOD
 	_generateMarkupIngredient(ing) {
 		return `
     <li class="recipe__ingredient">
