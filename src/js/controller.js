@@ -1,16 +1,18 @@
 ///////////////////////////////////////////////// IMPORTS
 import * as model from "./model.js";
 import recipeView from "./views/recipeView.js";
+import searchView from "./views/searchView.js";
+import resultsView from "./views/resultsView.js";
 
 import "core-js/stable"; // DOES => Polyfilling ES6 JS
 import "regenerator-runtime/runtime"; // DOES => Polyfilling async await
 
+if (module.hot) {
+	module.hot.accept();
+}
+
 ///////////////////////////////////////////////// REGENARATOR RUNTIME
 const { async } = require("regenerator-runtime");
-
-const recipeContainer = document.querySelector(".recipe");
-
-// https://forkify-api.herokuapp.com/v2
 
 ///////////////////////////////////////////////// CONTROL RECIPES FUNC
 const controlRecipes = async function () {
@@ -36,9 +38,29 @@ const controlRecipes = async function () {
 	}
 };
 
+///////////////////////////////////////////////// CONTROL SEARCH RESULTS FUNC
+const controlSearchResults = async function () {
+	try {
+		resultsView.renderSpinner();
+
+		// FUNCTIONALITY =>Gets the value from the search input field
+		const query = searchView.getQuery();
+		if (!query) return;
+
+		// FUNCTIONALITY => Load search results
+		await model.loadSearchResults(query);
+
+		// FUNCTIONALITY => Render search results
+		resultsView.render(model.state.search.results);
+	} catch (err) {
+		console.log(err);
+	}
+};
+
 ///////////////////////////////////////////////// INIT FUNC
 const init = function () {
 	recipeView.addHandlerRender(controlRecipes);
+	searchView.addHandlerSearch(controlSearchResults);
 };
 
 init();
