@@ -874,37 +874,53 @@ try {
   }
 }
 
-},{}],"src/js/model.js":[function(require,module,exports) {
+},{}],"src/js/config.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.state = exports.loadRecipe = void 0;
+exports.TIMEOUT_SEC = exports.API_URL = void 0;
+var API_URL = "https://forkify-api.herokuapp.com/api/v2/recipes";
+exports.API_URL = API_URL;
+var TIMEOUT_SEC = 10;
+exports.TIMEOUT_SEC = TIMEOUT_SEC;
+},{}],"src/js/helpers.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getJSON = void 0;
 
 var _regeneratorRuntime = require("regenerator-runtime");
+
+var _config = require("./config");
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-///////////////////////////////////////////////// STATE FUNC
-var state = {
-  recipe: {}
-}; ///////////////////////////////////////////////// LOAD RECIPE
+///////////////////////////////////////////////// TIMEOUT FUNC
+var timeout = function timeout(s) {
+  return new Promise(function (_, reject) {
+    setTimeout(function () {
+      reject(new Error("Request took too long! Timeout after ".concat(s, " second")));
+    }, s * 1000);
+  });
+}; ///////////////////////////////////////////////// GETJSON FUNC
 
-exports.state = state;
 
-var loadRecipe = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(id) {
-    var res, data, recipe;
+var getJSON = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(url) {
+    var res, data;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             _context.prev = 0;
             _context.next = 3;
-            return fetch("https://forkify-api.herokuapp.com/api/v2/recipes/".concat(id));
+            return Promise.race([fetch(url), timeout(_config.TIMEOUT_SEC)]);
 
           case 3:
             res = _context.sent;
@@ -922,6 +938,65 @@ var loadRecipe = /*#__PURE__*/function () {
             throw new Error("".concat(data.message, " (").concat(res.status, ")"));
 
           case 9:
+            return _context.abrupt("return", data);
+
+          case 12:
+            _context.prev = 12;
+            _context.t0 = _context["catch"](0);
+            throw _context.t0;
+
+          case 15:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, null, [[0, 12]]);
+  }));
+
+  return function getJSON(_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+exports.getJSON = getJSON;
+},{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js","./config":"src/js/config.js"}],"src/js/model.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.state = exports.loadRecipe = void 0;
+
+var _regeneratorRuntime = require("regenerator-runtime");
+
+var _config = require("./config.js");
+
+var _helpers = require("./helpers.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+///////////////////////////////////////////////// STATE FUNC
+var state = {
+  recipe: {}
+}; ///////////////////////////////////////////////// LOAD RECIPE
+
+exports.state = state;
+
+var loadRecipe = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(id) {
+    var data, recipe;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _context.prev = 0;
+            _context.next = 3;
+            return (0, _helpers.getJSON)("".concat(_config.API_URL, "/").concat(id));
+
+          case 3:
+            data = _context.sent;
             // DOES => Create a new recipe variable to format the data output
             recipe = data.data.recipe;
             state.recipe = {
@@ -935,20 +1010,20 @@ var loadRecipe = /*#__PURE__*/function () {
               ingredients: recipe.ingredients
             };
             console.log(state.recipe);
-            _context.next = 17;
+            _context.next = 12;
             break;
 
-          case 14:
-            _context.prev = 14;
+          case 9:
+            _context.prev = 9;
             _context.t0 = _context["catch"](0);
-            alert(_context.t0);
+            throw _context.t0;
 
-          case 17:
+          case 12:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 14]]);
+    }, _callee, null, [[0, 9]]);
   }));
 
   return function loadRecipe(_x) {
@@ -957,7 +1032,7 @@ var loadRecipe = /*#__PURE__*/function () {
 }();
 
 exports.loadRecipe = loadRecipe;
-},{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js"}],"src/img/icons.svg":[function(require,module,exports) {
+},{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js","./config.js":"src/js/config.js","./helpers.js":"src/js/helpers.js"}],"src/img/icons.svg":[function(require,module,exports) {
 module.exports = "/icons.ae3c38d5.svg";
 },{}],"node_modules/fractional/index.js":[function(require,module,exports) {
 /*
@@ -1348,8 +1423,6 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
 
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
@@ -1371,6 +1444,10 @@ function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.
 var _parentElement = /*#__PURE__*/new WeakMap();
 
 var _data = /*#__PURE__*/new WeakMap();
+
+var _errorMessage = /*#__PURE__*/new WeakMap();
+
+var _message = /*#__PURE__*/new WeakMap();
 
 var _clear = /*#__PURE__*/new WeakSet();
 
@@ -1399,18 +1476,20 @@ var RecipeView = /*#__PURE__*/function () {
       value: void 0
     });
 
-    _defineProperty(this, "renderSpinner", function () {
-      var markup = "\n  <div class=\"spinner\">\n          <svg>\n            <use href=\"".concat(_icons.default, "#icon-loader\"></use>\n          </svg>\n        </div>"); // DOES => Empties recipe container before inserting markup above
+    _classPrivateFieldInitSpec(this, _errorMessage, {
+      writable: true,
+      value: "Recipe not found. Please try another search."
+    });
 
-      _classPrivateFieldGet(this, _parentElement).innerHTML = "";
-
-      _classPrivateFieldGet(this, _parentElement).insertAdjacentHTML("afterbegin", markup);
+    _classPrivateFieldInitSpec(this, _message, {
+      writable: true,
+      value: ""
     });
   }
 
   _createClass(RecipeView, [{
     key: "render",
-    value: /////////////////////////// RENDER METHOD
+    value: //////////////////////////////// RENDER METHOD
     // FUNCTIONALITY => Stores data received from controller.showRecipe
     function render(data) {
       _classPrivateFieldSet(this, _data, data);
@@ -1422,6 +1501,57 @@ var RecipeView = /*#__PURE__*/function () {
 
       _classPrivateFieldGet(this, _parentElement).insertAdjacentHTML("afterbegin", markup);
     } // FUNCTIONALITY => Empties recipe container before inserting markup above
+
+  }, {
+    key: "renderSpinner",
+    value: //////////////////////////////// RENDER SPINNER
+    ////////// FUNCTIONALITY => Inserts spinner svg into recipe container HTML el while loading the page
+    function renderSpinner() {
+      var markup = "\n  <div class=\"spinner\">\n          <svg>\n            <use href=\"".concat(_icons.default, "#icon-loader\"></use>\n          </svg>\n        </div>"); // DOES => Empties recipe container before inserting spinner markup
+
+      _classPrivateMethodGet(this, _clear, _clear2).call(this);
+
+      _classPrivateFieldGet(this, _parentElement).insertAdjacentHTML("afterbegin", markup);
+    } //////////////////////////////// RENDER ERROR
+    // FUNCTIONALITY => Displays error message, using #errorMessage as default
+
+  }, {
+    key: "renderError",
+    value: function renderError() {
+      var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _classPrivateFieldGet(this, _errorMessage);
+      var markup = "\n    <div class=\"error\">\n      <div>\n        <svg>\n          <use href=\"".concat(_icons.default, "#icon-alert-triangle\"></use>\n        </svg>\n      </div>\n      <p>").concat(message, "</p>\n    </div>\n    "); // DOES => Empties recipe container before inserting error message markup
+
+      _classPrivateMethodGet(this, _clear, _clear2).call(this);
+
+      _classPrivateFieldGet(this, _parentElement).insertAdjacentHTML("afterbegin", markup);
+    } //////////////////////////////// RENDER MESSAGE
+    // FUNCTIONALITY => Displays  message, using #message as default
+
+  }, {
+    key: "renderMessage",
+    value: function renderMessage() {
+      var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _classPrivateFieldGet(this, _message);
+      var markup = "\n    <div class=\"message\">\n      <div>\n        <svg>\n          <use href=\"".concat(_icons.default, "#icon-smile\"></use>\n        </svg>\n      </div>\n      <p>").concat(message, "</p>\n    </div>\n    "); // DOES => Empties recipe container before inserting error message markup
+
+      _classPrivateMethodGet(this, _clear, _clear2).call(this);
+
+      _classPrivateFieldGet(this, _parentElement).insertAdjacentHTML("afterbegin", markup);
+    } //////////////////////////////// ADD HANDLER RENDER METHOD
+
+  }, {
+    key: "addHandlerRender",
+    value: function addHandlerRender(handler) {
+      ///////////////////////////////////////////////// HASHCHANGE & LOAD LISTENERS
+      // DOES => When the hash referring to the recipe ID on the url changes, it shows the recipe with that ID
+      ["hashchange", "load"].forEach(function (ev) {
+        return window.addEventListener(ev, handler);
+      }); // SAME AS =>
+
+      /*
+        window.addEventListener("hashchange", controlRecipes);
+        window.addEventListener("load", controlRecipes);
+        */
+    } //////////////////////////////// GENERATE MARKUP METHOD
 
   }]);
 
@@ -13953,17 +14083,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var _require = require("regenerator-runtime"),
     async = _require.async;
 
-var recipeContainer = document.querySelector(".recipe"); ///////////////////////////////////////////////// TIMEOUT FUNC
-
-var timeout = function timeout(s) {
-  return new Promise(function (_, reject) {
-    setTimeout(function () {
-      reject(new Error("Request took too long! Timeout after ".concat(s, " second")));
-    }, s * 1000);
-  });
-}; // https://forkify-api.herokuapp.com/v2
-///////////////////////////////////////////////// SHOW RECIPE
-
+var recipeContainer = document.querySelector(".recipe"); // https://forkify-api.herokuapp.com/v2
+///////////////////////////////////////////////// CONTROL RECIPES FUNC
 
 var controlRecipes = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
@@ -13973,61 +14094,58 @@ var controlRecipes = /*#__PURE__*/function () {
         switch (_context.prev = _context.next) {
           case 0:
             _context.prev = 0;
-            id = window.location.hash.slice(1);
-            console.log(id); // DOES => Guard clause. If there is no recipe ID, simply return the page
+            id = window.location.hash.slice(1); // DOES => Guard clause. If there is no recipe ID, simply return the page
 
             if (id) {
-              _context.next = 5;
+              _context.next = 4;
               break;
             }
 
             return _context.abrupt("return");
 
-          case 5:
+          case 4:
             ////////// FUNCTIONALITY => Render spinner
             _recipeView.default.renderSpinner(); ////////// FUNCTIONALITY => Load recipe
             // DOES => Loads recipe and stores it into state object in models.js
 
 
-            _context.next = 8;
+            _context.next = 7;
             return model.loadRecipe(id);
 
-          case 8:
+          case 7:
             ////////// FUNCTIONALITY => Render recipe
-            // DOES => Takes data loaded in model.state.recipe and passes it into recipeView.render method
+            // DOES => Takes data loaded in model.state.recipe and passes it into recipeView.render method...
             _recipeView.default.render(model.state.recipe);
 
-            _context.next = 14;
+            _context.next = 13;
             break;
 
-          case 11:
-            _context.prev = 11;
+          case 10:
+            _context.prev = 10;
             _context.t0 = _context["catch"](0);
-            alert(_context.t0);
 
-          case 14:
+            // DOES => ... or displays error message
+            _recipeView.default.renderError();
+
+          case 13:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 11]]);
+    }, _callee, null, [[0, 10]]);
   }));
 
   return function controlRecipes() {
     return _ref.apply(this, arguments);
   };
-}(); ///////////////////////////////////////////////// HASHCHANGE & LOAD LISTENERs
-// DOES => When the hash referring to the recipe ID on the url changes, it shows the recipe with that ID
+}(); ///////////////////////////////////////////////// INIT FUNC
 
 
-["hashchange", "load"].forEach(function (ev) {
-  return window.addEventListener(ev, controlRecipes);
-}); // SAME AS =>
+var init = function init() {
+  _recipeView.default.addHandlerRender(controlRecipes);
+};
 
-/*
-window.addEventListener("hashchange", controlRecipes);
-window.addEventListener("load", controlRecipes);
-*/
+init();
 },{"./model.js":"src/js/model.js","./views/recipeView.js":"src/js/views/recipeView.js","core-js/stable":"node_modules/core-js/stable/index.js","regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","regenerator-runtime":"node_modules/regenerator-runtime/runtime.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -14056,7 +14174,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63816" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49291" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

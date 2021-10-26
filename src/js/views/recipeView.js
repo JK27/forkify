@@ -4,10 +4,13 @@ import { Fraction } from "fractional";
 
 ///////////////////////////////////////////////// RECIPE VIEW
 class RecipeView {
+	//////////////////////////////// PRIVATE PROPERTIES
 	#parentElement = document.querySelector(".recipe");
 	#data;
+	#errorMessage = "Recipe not found. Please try another search.";
+	#message = "";
 
-	/////////////////////////// RENDER METHOD
+	//////////////////////////////// RENDER METHOD
 	// FUNCTIONALITY => Stores data received from controller.showRecipe
 	render(data) {
 		this.#data = data;
@@ -23,9 +26,9 @@ class RecipeView {
 		this.#parentElement.innerHTML = "";
 	}
 
-	///////////////////////////////////////////////// RENDER SPINNER
+	//////////////////////////////// RENDER SPINNER
 	////////// FUNCTIONALITY => Inserts spinner svg into recipe container HTML el while loading the page
-	renderSpinner = function () {
+	renderSpinner() {
 		const markup = `
   <div class="spinner">
           <svg>
@@ -33,12 +36,62 @@ class RecipeView {
           </svg>
         </div>`;
 
-		// DOES => Empties recipe container before inserting markup above
-		this.#parentElement.innerHTML = "";
+		// DOES => Empties recipe container before inserting spinner markup
+		this.#clear();
 		this.#parentElement.insertAdjacentHTML("afterbegin", markup);
-	};
+	}
 
-	/////////////////////////// GENERATE MARKUP METHOD
+	//////////////////////////////// RENDER ERROR
+	// FUNCTIONALITY => Displays error message, using #errorMessage as default
+	renderError(message = this.#errorMessage) {
+		const markup = `
+    <div class="error">
+      <div>
+        <svg>
+          <use href="${icons}#icon-alert-triangle"></use>
+        </svg>
+      </div>
+      <p>${message}</p>
+    </div>
+    `;
+
+		// DOES => Empties recipe container before inserting error message markup
+		this.#clear();
+		this.#parentElement.insertAdjacentHTML("afterbegin", markup);
+	}
+
+	//////////////////////////////// RENDER MESSAGE
+	// FUNCTIONALITY => Displays  message, using #message as default
+	renderMessage(message = this.#message) {
+		const markup = `
+    <div class="message">
+      <div>
+        <svg>
+          <use href="${icons}#icon-smile"></use>
+        </svg>
+      </div>
+      <p>${message}</p>
+    </div>
+    `;
+
+		// DOES => Empties recipe container before inserting error message markup
+		this.#clear();
+		this.#parentElement.insertAdjacentHTML("afterbegin", markup);
+	}
+
+	//////////////////////////////// ADD HANDLER RENDER METHOD
+	addHandlerRender(handler) {
+		///////////////////////////////////////////////// HASHCHANGE & LOAD LISTENERS
+		// DOES => When the hash referring to the recipe ID on the url changes, it shows the recipe with that ID
+		["hashchange", "load"].forEach(ev => window.addEventListener(ev, handler));
+		// SAME AS =>
+		/*
+    window.addEventListener("hashchange", controlRecipes);
+    window.addEventListener("load", controlRecipes);
+    */
+	}
+
+	//////////////////////////////// GENERATE MARKUP METHOD
 	#generateMarkup() {
 		return `
     <figure class="recipe__fig">
@@ -127,6 +180,7 @@ class RecipeView {
         </div>`;
 	}
 
+	//////////////////////////////// GENERATE MARKUP INGREDIENT METHOD
 	#generateMarkupIngredient(ing) {
 		return `
     <li class="recipe__ingredient">

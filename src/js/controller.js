@@ -10,22 +10,12 @@ const { async } = require("regenerator-runtime");
 
 const recipeContainer = document.querySelector(".recipe");
 
-///////////////////////////////////////////////// TIMEOUT FUNC
-const timeout = function (s) {
-	return new Promise(function (_, reject) {
-		setTimeout(function () {
-			reject(new Error(`Request took too long! Timeout after ${s} second`));
-		}, s * 1000);
-	});
-};
-
 // https://forkify-api.herokuapp.com/v2
 
-///////////////////////////////////////////////// SHOW RECIPE
+///////////////////////////////////////////////// CONTROL RECIPES FUNC
 const controlRecipes = async function () {
 	try {
 		const id = window.location.hash.slice(1);
-		console.log(id);
 
 		// DOES => Guard clause. If there is no recipe ID, simply return the page
 		if (!id) return;
@@ -38,20 +28,17 @@ const controlRecipes = async function () {
 		await model.loadRecipe(id);
 
 		////////// FUNCTIONALITY => Render recipe
-		// DOES => Takes data loaded in model.state.recipe and passes it into recipeView.render method
+		// DOES => Takes data loaded in model.state.recipe and passes it into recipeView.render method...
 		recipeView.render(model.state.recipe);
 	} catch (err) {
-		alert(err);
+		// DOES => ... or displays error message
+		recipeView.renderError();
 	}
 };
 
-///////////////////////////////////////////////// HASHCHANGE & LOAD LISTENERs
-// DOES => When the hash referring to the recipe ID on the url changes, it shows the recipe with that ID
-["hashchange", "load"].forEach(ev =>
-	window.addEventListener(ev, controlRecipes)
-);
-// SAME AS =>
-/*
-window.addEventListener("hashchange", controlRecipes);
-window.addEventListener("load", controlRecipes);
-*/
+///////////////////////////////////////////////// INIT FUNC
+const init = function () {
+	recipeView.addHandlerRender(controlRecipes);
+};
+
+init();
