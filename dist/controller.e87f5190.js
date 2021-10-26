@@ -967,7 +967,7 @@ exports.getJSON = getJSON;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.state = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResutlsPage = void 0;
+exports.updateServings = exports.state = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResutlsPage = void 0;
 
 var _regeneratorRuntime = require("regenerator-runtime");
 
@@ -1102,9 +1102,19 @@ var getSearchResutlsPage = function getSearchResutlsPage() {
   var end = page * state.search.resultsPerPage; // DOES => Returns search results in intervals of 10 at a time
 
   return state.search.results.slice(start, end);
-};
+}; ///////////////////////////////////////////////////////////////////// UPDATE SERVINGS
+
 
 exports.getSearchResutlsPage = getSearchResutlsPage;
+
+var updateServings = function updateServings(newServings) {
+  state.recipe.ingredients.forEach(function (ing) {
+    ing.quantity = ing.quantity * newServings / state.recipe.servings; // newQty = oldQty * newServings / oldServings
+  });
+  state.recipe.servings = newServings;
+};
+
+exports.updateServings = updateServings;
 },{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js","./config.js":"src/js/config.js","./helpers.js":"src/js/helpers.js"}],"src/img/icons.svg":[function(require,module,exports) {
 module.exports = "/icons.ae3c38d5.svg";
 },{}],"src/js/views/view.js":[function(require,module,exports) {
@@ -1649,12 +1659,23 @@ var RecipeView = /*#__PURE__*/function (_View) {
         window.addEventListener("hashchange", controlRecipes);
         window.addEventListener("load", controlRecipes);
         */
+    } //////////////////////////////////////////////////// ADD HANDLER UPDATE SERVINGS
+
+  }, {
+    key: "addHandlerUpdateServings",
+    value: function addHandlerUpdateServings(handler) {
+      this._parentElement.addEventListener("click", function (e) {
+        var btn = e.target.closest(".btn--update-servings");
+        if (!btn) return;
+        var updateTo = btn.dataset.updateTo;
+        if (+updateTo > 0) handler(+updateTo);
+      });
     } //////////////////////////////////////////////////// GENERATE MARKUP METHOD
 
   }, {
     key: "_generateMarkup",
     value: function _generateMarkup() {
-      return "\n    <figure class=\"recipe__fig\">\n          <img src=\"".concat(this._data.image, "\" alt=\"").concat(this._data.title, "\" class=\"recipe__img\" />\n          <h1 class=\"recipe__title\">\n            <span>").concat(this._data.title, "</span>\n          </h1>\n        </figure>\n\n        <div class=\"recipe__details\">\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-clock\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--minutes\">").concat(this._data.cookingTime, "</span>\n            <span class=\"recipe__info-text\">minutes</span>\n          </div>\n\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-users\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--people\">").concat(this._data.servings, "</span>\n            <span class=\"recipe__info-text\">servings</span>\n\n            <div class=\"recipe__info-buttons\">\n              <button class=\"btn--tiny btn--increase-servings\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-minus-circle\"></use>\n                </svg>\n              </button>\n              <button class=\"btn--tiny btn--increase-servings\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-plus-circle\"></use>\n                </svg>\n              </button>\n            </div>\n          </div>\n\n          <div class=\"recipe__user-generated\">\n          </div>\n          <button class=\"btn--round\">\n            <svg class=\"\">\n              <use href=\"").concat(_icons.default, "#icon-bookmark-fill\"></use>\n            </svg>\n          </button>\n        </div>\n\n        <div class=\"recipe__ingredients\">\n          <h2 class=\"heading--2\">Recipe ingredients</h2>\n          <ul class=\"recipe__ingredient-list\">\n          ").concat(this._data.ingredients.map(this._generateMarkupIngredient).join(""), "            \n          </ul>\n        </div>\n\n        <div class=\"recipe__directions\">\n          <h2 class=\"heading--2\">How to cook it</h2>\n          <p class=\"recipe__directions-text\">\n            This recipe was carefully designed and tested by\n            <span class=\"recipe__publisher\">").concat(this._data.publisher, "</span>. Please check out\n            directions at their website.\n          </p>\n          <a\n            class=\"btn--small recipe__btn\"\n            href=\"").concat(this._data.sourceUrl, "\"\n            target=\"_blank\"\n          >\n            <span>Directions</span>\n            <svg class=\"search__icon\">\n              <use href=\"").concat(_icons.default, "#icon-arrow-right\"></use>\n            </svg>\n          </a>\n        </div>");
+      return "\n    <figure class=\"recipe__fig\">\n          <img src=\"".concat(this._data.image, "\" alt=\"").concat(this._data.title, "\" class=\"recipe__img\" />\n          <h1 class=\"recipe__title\">\n            <span>").concat(this._data.title, "</span>\n          </h1>\n        </figure>\n\n        <div class=\"recipe__details\">\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-clock\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--minutes\">").concat(this._data.cookingTime, "</span>\n            <span class=\"recipe__info-text\">minutes</span>\n          </div>\n\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-users\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--people\">").concat(this._data.servings, "</span>\n            <span class=\"recipe__info-text\">servings</span>\n\n            <div class=\"recipe__info-buttons\">\n              <button class=\"btn--tiny btn--update-servings\" data-update-to=\"").concat(this._data.servings - 1, "\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-minus-circle\"></use>\n                </svg>\n              </button>\n              <button class=\"btn--tiny btn--update-servings\" data-update-to=\"").concat(this._data.servings + 1, "\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-plus-circle\"></use>\n                </svg>\n              </button>\n            </div>\n          </div>\n\n          <div class=\"recipe__user-generated\">\n          </div>\n          <button class=\"btn--round\">\n            <svg class=\"\">\n              <use href=\"").concat(_icons.default, "#icon-bookmark-fill\"></use>\n            </svg>\n          </button>\n        </div>\n\n        <div class=\"recipe__ingredients\">\n          <h2 class=\"heading--2\">Recipe ingredients</h2>\n          <ul class=\"recipe__ingredient-list\">\n          ").concat(this._data.ingredients.map(this._generateMarkupIngredient).join(""), "            \n          </ul>\n        </div>\n\n        <div class=\"recipe__directions\">\n          <h2 class=\"heading--2\">How to cook it</h2>\n          <p class=\"recipe__directions-text\">\n            This recipe was carefully designed and tested by\n            <span class=\"recipe__publisher\">").concat(this._data.publisher, "</span>. Please check out\n            directions at their website.\n          </p>\n          <a\n            class=\"btn--small recipe__btn\"\n            href=\"").concat(this._data.sourceUrl, "\"\n            target=\"_blank\"\n          >\n            <span>Directions</span>\n            <svg class=\"search__icon\">\n              <use href=\"").concat(_icons.default, "#icon-arrow-right\"></use>\n            </svg>\n          </a>\n        </div>");
     } //////////////////////////////////////////////////// GENERATE MARKUP INGREDIENT METHOD
 
   }, {
@@ -14452,7 +14473,7 @@ if (module.hot) {
 
 
 var _require = require("regenerator-runtime"),
-    async = _require.async; ///////////////////////////////////////////////////////////////////// CONTROL RECIPES FUNC
+    async = _require.async; ///////////////////////////////////////////////////////////////////// CONTROL RECIPES
 
 
 var controlRecipes = /*#__PURE__*/function () {
@@ -14507,7 +14528,7 @@ var controlRecipes = /*#__PURE__*/function () {
   return function controlRecipes() {
     return _ref.apply(this, arguments);
   };
-}(); ///////////////////////////////////////////////////////////////////// CONTROL SEARCH RESULTS FUNC
+}(); ///////////////////////////////////////////////////////////////////// CONTROL SEARCH RESULTS
 
 
 var controlSearchResults = /*#__PURE__*/function () {
@@ -14562,7 +14583,7 @@ var controlSearchResults = /*#__PURE__*/function () {
   return function controlSearchResults() {
     return _ref2.apply(this, arguments);
   };
-}(); ///////////////////////////////////////////////////////////////////// CONTROL PAGINATION FUNC
+}(); ///////////////////////////////////////////////////////////////////// CONTROL PAGINATION
 
 
 var controlPagination = function controlPagination(goToPage) {
@@ -14571,11 +14592,21 @@ var controlPagination = function controlPagination(goToPage) {
 
 
   _paginationView.default.render(model.state.search);
+}; ///////////////////////////////////////////////////////////////////// CONTROL SERVINGS
+
+
+var controlServings = function controlServings(newServings) {
+  // FUNCTIONALITY => Update recipe servings in state
+  model.updateServings(newServings); // FUNCTIONALITY => Update recipe view
+
+  _recipeView.default.render(model.state.recipe);
 }; ///////////////////////////////////////////////////////////////////// INIT FUNC
 
 
 var init = function init() {
   _recipeView.default.addHandlerRender(controlRecipes);
+
+  _recipeView.default.addHandlerUpdateServings(controlServings);
 
   _searchView.default.addHandlerSearch(controlSearchResults);
 
@@ -14611,7 +14642,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55911" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59766" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

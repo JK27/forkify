@@ -74,3 +74,14 @@ export const getSearchResutlsPage = function (page = state.search.page) {
 	// DOES => Returns search results in intervals of 10 at a time
 	return state.search.results.slice(start, end);
 };
+
+///////////////////////////////////////////////////////////////////// UPDATE SERVINGS
+export const updateServings = function (newServings) {
+	state.recipe.ingredients.forEach(ing => {
+		ing.quantity = (ing.quantity * newServings) / state.recipe.servings;
+
+		// newQty = oldQty * newServings / oldServings
+	});
+
+	state.recipe.servings = newServings;
+};

@@ -15,7 +15,7 @@ if (module.hot) {
 ///////////////////////////////////////////////////////////////////// REGENARATOR RUNTIME
 const { async } = require("regenerator-runtime");
 
-///////////////////////////////////////////////////////////////////// CONTROL RECIPES FUNC
+///////////////////////////////////////////////////////////////////// CONTROL RECIPES
 const controlRecipes = async function () {
 	try {
 		const id = window.location.hash.slice(1);
@@ -39,7 +39,7 @@ const controlRecipes = async function () {
 	}
 };
 
-///////////////////////////////////////////////////////////////////// CONTROL SEARCH RESULTS FUNC
+///////////////////////////////////////////////////////////////////// CONTROL SEARCH RESULTS
 const controlSearchResults = async function () {
 	try {
 		resultsView.renderSpinner();
@@ -62,7 +62,7 @@ const controlSearchResults = async function () {
 	}
 };
 
-///////////////////////////////////////////////////////////////////// CONTROL PAGINATION FUNC
+///////////////////////////////////////////////////////////////////// CONTROL PAGINATION
 const controlPagination = function (goToPage) {
 	// FUNCTIONALITY => Render new results for selected page
 	resultsView.render(model.getSearchResutlsPage(goToPage));
@@ -71,9 +71,19 @@ const controlPagination = function (goToPage) {
 	paginationView.render(model.state.search);
 };
 
+///////////////////////////////////////////////////////////////////// CONTROL SERVINGS
+const controlServings = function (newServings) {
+	// FUNCTIONALITY => Update recipe servings in state
+	model.updateServings(newServings);
+
+	// FUNCTIONALITY => Update recipe view
+	recipeView.render(model.state.recipe);
+};
+
 ///////////////////////////////////////////////////////////////////// INIT FUNC
 const init = function () {
 	recipeView.addHandlerRender(controlRecipes);
+	recipeView.addHandlerUpdateServings(controlServings);
 	searchView.addHandlerSearch(controlSearchResults);
 	paginationView.addHandlerClick(controlPagination);
 };
