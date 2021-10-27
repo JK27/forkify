@@ -26,6 +26,9 @@ const controlRecipes = async function () {
 		////////// FUNCTIONALITY => Render spinner
 		recipeView.renderSpinner();
 
+		// FUNCTIONALITY => Mark selected search result
+		resultsView.update(model.getSearchResutlsPage());
+
 		////////// FUNCTIONALITY => Load recipe
 		// DOES => Loads recipe and stores it into state object in models.js
 		await model.loadRecipe(id);
@@ -52,7 +55,6 @@ const controlSearchResults = async function () {
 		await model.loadSearchResults(query);
 
 		// FUNCTIONALITY => Render search results
-		// resultsView.render(model.state.search.results);
 		resultsView.render(model.getSearchResutlsPage());
 
 		// FUNCTIONALITY => Render initial pagination buttons
@@ -77,7 +79,9 @@ const controlServings = function (newServings) {
 	model.updateServings(newServings);
 
 	// FUNCTIONALITY => Update recipe view
-	recipeView.render(model.state.recipe);
+	// recipeView.render(model.state.recipe);
+	// DOES => Update() only refreshes text and attr instead of reloading the whole page
+	recipeView.update(model.state.recipe);
 };
 
 ///////////////////////////////////////////////////////////////////// INIT FUNC

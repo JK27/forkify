@@ -1059,8 +1059,7 @@ var loadSearchResults = /*#__PURE__*/function () {
 
           case 4:
             data = _context2.sent;
-            console.log(data); // DOES => Gets recipe data from search query and returns a new array with new object
-
+            // DOES => Gets recipe data from search query and returns a new array with new object
             state.search.results = data.data.recipes.map(function (rec) {
               return {
                 id: rec.id,
@@ -1069,21 +1068,21 @@ var loadSearchResults = /*#__PURE__*/function () {
                 image: rec.image_url
               };
             });
-            _context2.next = 13;
+            _context2.next = 12;
             break;
 
-          case 9:
-            _context2.prev = 9;
+          case 8:
+            _context2.prev = 8;
             _context2.t0 = _context2["catch"](0);
             console.log("".concat(_context2.t0, " \uD83D\uDCA5\uD83D\uDCA5\uD83D\uDCA5"));
             throw _context2.t0;
 
-          case 13:
+          case 12:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[0, 9]]);
+    }, _callee2, null, [[0, 8]]);
   }));
 
   return function loadSearchResults(_x2) {
@@ -1161,6 +1160,34 @@ var View = /*#__PURE__*/function () {
 
 
       this._parentElement.insertAdjacentHTML("afterbegin", markup);
+    } //////////////////////////////////////////////////// UPDATE
+    // FUNCTIONALITY => Updates markup only with changes in text and attr, instead of reloading
+
+  }, {
+    key: "update",
+    value: function update(data) {
+      this._data = data;
+
+      var newMarkup = this._generateMarkup(); // DOES => Converts newMarkup string into virtual DOM object in order to compare both versions
+
+
+      var newDOM = document.createRange().createContextualFragment(newMarkup);
+      var newElements = Array.from(newDOM.querySelectorAll("*"));
+      var currElements = Array.from(this._parentElement.querySelectorAll("*"));
+      newElements.forEach(function (newEl, i) {
+        var currEl = currElements[i];
+        console.log(currEl, newEl.isEqualNode(currEl)); // DOES => Updates changed text
+
+        if (!newEl.isEqualNode(currEl) && newEl.firstChild.nodeValue.trim() !== "") {
+          // console.log("👌", newEl.firstChild.nodeValue.trim());
+          currEl.textContent = newEl.textContent;
+        } // DOES => Updates changed attributes
+
+
+        if (!newEl.isEqualNode(currEl)) Array.from(newEl.attributes).forEach(function (attr) {
+          return currEl.setAttribute(attr.name, attr.value);
+        });
+      });
     } //////////////////////////////////////////////////// CLEAR
     // FUNCTIONALITY => Empties recipe container before inserting markup above
 
@@ -1829,7 +1856,8 @@ var ResultsView = /*#__PURE__*/function (_View) {
   }, {
     key: "_generateMarkupPreview",
     value: function _generateMarkupPreview(result) {
-      return "\n      <li class=\"preview\">\n        <a class=\"preview__link\" href=\"#".concat(result.id, "\">\n          <figure class=\"preview__fig\">\n            <img src=\"").concat(result.image, "\" alt=\"Preview\" />\n          </figure>\n          <div class=\"preview__data\">\n            <h4 class=\"preview__title\">").concat(result.title, "</h4>\n            <p class=\"preview__publisher\">").concat(result.publisher, "</p>\n          </div>\n        </a>\n      </li>\n    ");
+      var id = window.location.hash.slice(1);
+      return "\n      <li class=\"preview\">\n        <a class=\"preview__link ".concat(result.id === id ? "preview__link--active" : "", "\" href=\"#").concat(result.id, "\">\n          <figure class=\"preview__fig\">\n            <img src=\"").concat(result.image, "\" alt=\"Preview\" />\n          </figure>\n          <div class=\"preview__data\">\n            <h4 class=\"preview__title\">").concat(result.title, "</h4>\n            <p class=\"preview__publisher\">").concat(result.publisher, "</p>\n          </div>\n        </a>\n      </li>\n    ");
     }
   }]);
 
@@ -14495,34 +14523,37 @@ var controlRecipes = /*#__PURE__*/function () {
 
           case 4:
             ////////// FUNCTIONALITY => Render spinner
-            _recipeView.default.renderSpinner(); ////////// FUNCTIONALITY => Load recipe
+            _recipeView.default.renderSpinner(); // FUNCTIONALITY => Mark selected search result
+
+
+            _resultsView.default.update(model.getSearchResutlsPage()); ////////// FUNCTIONALITY => Load recipe
             // DOES => Loads recipe and stores it into state object in models.js
 
 
-            _context.next = 7;
+            _context.next = 8;
             return model.loadRecipe(id);
 
-          case 7:
+          case 8:
             ////////// FUNCTIONALITY => Render recipe
             // DOES => Takes data loaded in model.state.recipe and passes it into recipeView.render method...
             _recipeView.default.render(model.state.recipe);
 
-            _context.next = 13;
+            _context.next = 14;
             break;
 
-          case 10:
-            _context.prev = 10;
+          case 11:
+            _context.prev = 11;
             _context.t0 = _context["catch"](0);
 
             // DOES => ... or displays error message
             _recipeView.default.renderError();
 
-          case 13:
+          case 14:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 10]]);
+    }, _callee, null, [[0, 11]]);
   }));
 
   return function controlRecipes() {
@@ -14558,7 +14589,6 @@ var controlSearchResults = /*#__PURE__*/function () {
 
           case 7:
             // FUNCTIONALITY => Render search results
-            // resultsView.render(model.state.search.results);
             _resultsView.default.render(model.getSearchResutlsPage()); // FUNCTIONALITY => Render initial pagination buttons
 
 
@@ -14598,8 +14628,10 @@ var controlPagination = function controlPagination(goToPage) {
 var controlServings = function controlServings(newServings) {
   // FUNCTIONALITY => Update recipe servings in state
   model.updateServings(newServings); // FUNCTIONALITY => Update recipe view
+  // recipeView.render(model.state.recipe);
+  // DOES => Update() only refreshes text and attr instead of reloading the whole page
 
-  _recipeView.default.render(model.state.recipe);
+  _recipeView.default.update(model.state.recipe);
 }; ///////////////////////////////////////////////////////////////////// INIT FUNC
 
 
@@ -14642,7 +14674,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59766" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60233" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

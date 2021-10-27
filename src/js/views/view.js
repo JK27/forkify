@@ -20,6 +20,37 @@ export default class View {
 		this._parentElement.insertAdjacentHTML("afterbegin", markup);
 	}
 
+	//////////////////////////////////////////////////// UPDATE
+	// FUNCTIONALITY => Updates markup only with changes in text and attr, instead of reloading
+	update(data) {
+		this._data = data;
+		const newMarkup = this._generateMarkup();
+		// DOES => Converts newMarkup string into virtual DOM object in order to compare both versions
+		const newDOM = document.createRange().createContextualFragment(newMarkup);
+		const newElements = Array.from(newDOM.querySelectorAll("*"));
+		const currElements = Array.from(this._parentElement.querySelectorAll("*"));
+
+		newElements.forEach((newEl, i) => {
+			const currEl = currElements[i];
+			console.log(currEl, newEl.isEqualNode(currEl));
+
+			// DOES => Updates changed text
+			if (
+				!newEl.isEqualNode(currEl) &&
+				newEl.firstChild.nodeValue.trim() !== ""
+			) {
+				// console.log("👌", newEl.firstChild.nodeValue.trim());
+				currEl.textContent = newEl.textContent;
+			}
+
+			// DOES => Updates changed attributes
+			if (!newEl.isEqualNode(currEl))
+				Array.from(newEl.attributes).forEach(attr =>
+					currEl.setAttribute(attr.name, attr.value)
+				);
+		});
+	}
+
 	//////////////////////////////////////////////////// CLEAR
 	// FUNCTIONALITY => Empties recipe container before inserting markup above
 	_clear() {
