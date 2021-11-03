@@ -27,7 +27,6 @@ class PaginationView extends View {
 		const numPages = Math.ceil(
 			this._data.results.length / this._data.resultsPerPage
 		);
-		console.log(numPages);
 
 		// FUNCTIONALITY => First page and there are mor pages
 		// DOES => If current page equals 1, and the total number of pages is greater than 1; it means we are on the first page. Therefore, only display the next page button

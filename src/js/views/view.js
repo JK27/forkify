@@ -7,13 +7,16 @@ export default class View {
 	_data;
 	//////////////////////////////////////////////////// RENDER METHOD
 	// FUNCTIONALITY => Stores data received from controller.showRecipe
-	render(data) {
+	render(data, render = true) {
 		// DOES => Guard clause. If there is no data or if data is an empty array, simply return and display error message
 		if (!data || (Array.isArray(data) && data.length === 0))
 			return this.renderError();
 
 		this._data = data;
 		const markup = this._generateMarkup();
+
+		if (!render) return markup;
+
 		this._clear();
 
 		// DOES => Inserts markup var into recipe container (.recipe) HMTL, rendering the recipe
@@ -32,14 +35,12 @@ export default class View {
 
 		newElements.forEach((newEl, i) => {
 			const currEl = currElements[i];
-			console.log(currEl, newEl.isEqualNode(currEl));
 
 			// DOES => Updates changed text
 			if (
 				!newEl.isEqualNode(currEl) &&
 				newEl.firstChild.nodeValue.trim() !== ""
 			) {
-				// console.log("👌", newEl.firstChild.nodeValue.trim());
 				currEl.textContent = newEl.textContent;
 			}
 

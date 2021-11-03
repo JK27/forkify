@@ -880,20 +880,24 @@ try {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TIMEOUT_SEC = exports.RESULTS_PER_PAGE = exports.API_URL = void 0;
+exports.TIMEOUT_SEC = exports.RESULTS_PER_PAGE = exports.MODAL_CLOSE_SEC = exports.KEY = exports.API_URL = void 0;
 var API_URL = "https://forkify-api.herokuapp.com/api/v2/recipes/";
 exports.API_URL = API_URL;
 var TIMEOUT_SEC = 10;
 exports.TIMEOUT_SEC = TIMEOUT_SEC;
-var RESULTS_PER_PAGE = 100;
+var RESULTS_PER_PAGE = 10;
 exports.RESULTS_PER_PAGE = RESULTS_PER_PAGE;
+var KEY = "ef854cd9-9933-446c-8431-ea9596426bd4";
+exports.KEY = KEY;
+var MODAL_CLOSE_SEC = 2.5;
+exports.MODAL_CLOSE_SEC = MODAL_CLOSE_SEC;
 },{}],"src/js/helpers.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getJSON = void 0;
+exports.AJAX = void 0;
 
 var _regeneratorRuntime = require("regenerator-runtime");
 
@@ -910,64 +914,122 @@ var timeout = function timeout(s) {
       reject(new Error("Request took too long! Timeout after ".concat(s, " second")));
     }, s * 1000);
   });
-}; ///////////////////////////////////////////////// GETJSON FUNC
+}; ///////////////////////////////////////////////// AJAX FUNC
 
 
-var getJSON = /*#__PURE__*/function () {
+var AJAX = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(url) {
-    var res, data;
+    var uploadData,
+        fetchPro,
+        res,
+        data,
+        _args = arguments;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            _context.prev = 0;
-            _context.next = 3;
-            return Promise.race([fetch(url), timeout(_config.TIMEOUT_SEC)]);
+            uploadData = _args.length > 1 && _args[1] !== undefined ? _args[1] : undefined;
+            _context.prev = 1;
+            fetchPro = uploadData ? fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(uploadData)
+            }) : fetch(url); // DOES => Sends request to API for a specific recipe ID. If success before timeout, returns page. Otherwise, returns timeout error.
 
-          case 3:
+            _context.next = 5;
+            return Promise.race([fetchPro, timeout(_config.TIMEOUT_SEC)]);
+
+          case 5:
             res = _context.sent;
-            _context.next = 6;
+            _context.next = 8;
             return res.json();
 
-          case 6:
+          case 8:
             data = _context.sent;
 
             if (res.ok) {
-              _context.next = 9;
+              _context.next = 11;
               break;
             }
 
             throw new Error("".concat(data.message, " (").concat(res.status, ")"));
 
-          case 9:
+          case 11:
             return _context.abrupt("return", data);
 
-          case 12:
-            _context.prev = 12;
-            _context.t0 = _context["catch"](0);
+          case 14:
+            _context.prev = 14;
+            _context.t0 = _context["catch"](1);
             throw _context.t0;
 
-          case 15:
+          case 17:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 12]]);
+    }, _callee, null, [[1, 14]]);
   }));
 
-  return function getJSON(_x) {
+  return function AJAX(_x) {
     return _ref.apply(this, arguments);
   };
-}();
+}(); // SAME AS =>
 
-exports.getJSON = getJSON;
+/*
+///////////////////////////////////////////////// GETJSON FUNC
+export const getJSON = async function (url) {
+	try {
+		const fetchPro = fetch(url);
+		// DOES => Sends request to API for a specific recipe ID. If success before timeout, returns page. Otherwise, returns timeout error.
+		const res = await Promise.race([fetchPro, timeout(TIMEOUT_SEC)]);
+
+		// DOES => Converts the response gotten form the API to JSON format
+		const data = await res.json();
+
+		// DOES => If Response ok is false, throw a new error with the message coming from the message property on the data and the status code
+		if (!res.ok) throw new Error(`${data.message} (${res.status})`);
+		return data;
+	} catch (err) {
+		throw err;
+	}
+};
+
+///////////////////////////////////////////////// SEND JSON FUNC
+export const sendJSON = async function (url, uploadData) {
+	try {
+		const fetchPro = fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(uploadData),
+		});
+		// DOES => Sends request to API for a specific recipe ID. If sucess before timeout, returns page. Otherwise, returns timeout error.
+		const res = await Promise.race([fetchPro, timeout(TIMEOUT_SEC)]);
+
+		// DOES => Converts the response gotten form the API to JSON format
+		const data = await res.json();
+
+		// DOES => If Response ok is false, throw a new error with the message coming from the message property on the data and the status code
+		if (!res.ok) throw new Error(`${data.message} (${res.status})`);
+		return data;
+	} catch (err) {
+		throw err;
+	}
+};
+*/
+
+
+exports.AJAX = AJAX;
 },{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js","./config":"src/js/config.js"}],"src/js/model.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateServings = exports.state = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResutlsPage = void 0;
+exports.uploadRecipe = exports.updateServings = exports.state = exports.removeBookmark = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResutlsPage = exports.addBookmark = void 0;
 
 var _regeneratorRuntime = require("regenerator-runtime");
 
@@ -975,9 +1037,27 @@ var _config = require("./config.js");
 
 var _helpers = require("./helpers.js");
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 ///////////////////////////////////////////////////////////////////// STATE FUNC
 // DOES => Contains all data needed to build application
@@ -988,37 +1068,48 @@ var state = {
     results: [],
     page: 1,
     resultsPerPage: _config.RESULTS_PER_PAGE
-  }
-}; ///////////////////////////////////////////////////////////////////// LOAD RECIPE
-////////// FUNCTIONALITY => Loads recipe with specific ID
+  },
+  bookmarks: []
+}; ///////////////////////////////////////////////////////////////////// CREATE RECIPE OBJECT
 
 exports.state = state;
 
+var createRecipeObject = function createRecipeObject(data) {
+  // DOES => Create a new recipe variable to format the data output
+  var recipe = data.data.recipe;
+  return _objectSpread({
+    id: recipe.id,
+    title: recipe.title,
+    publisher: recipe.publisher,
+    sourceUrl: recipe.source_url,
+    image: recipe.image_url,
+    servings: recipe.servings,
+    cookingTime: recipe.cooking_time,
+    ingredients: recipe.ingredients
+  }, recipe.key && {
+    key: recipe.key
+  });
+}; ///////////////////////////////////////////////////////////////////// LOAD RECIPE
+////////// FUNCTIONALITY => Loads recipe with specific ID
+
+
 var loadRecipe = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(id) {
-    var data, recipe;
+    var data;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             _context.prev = 0;
             _context.next = 3;
-            return (0, _helpers.getJSON)("".concat(_config.API_URL).concat(id));
+            return (0, _helpers.AJAX)("".concat(_config.API_URL).concat(id, "?key=").concat(_config.KEY));
 
           case 3:
             data = _context.sent;
-            // DOES => Create a new recipe variable to format the data output
-            recipe = data.data.recipe;
-            state.recipe = {
-              id: recipe.id,
-              title: recipe.title,
-              publisher: recipe.publisher,
-              sourceUrl: recipe.source_url,
-              image: recipe.image_url,
-              servings: recipe.servings,
-              cookingTime: recipe.cooking_time,
-              ingredients: recipe.ingredients
-            };
+            state.recipe = createRecipeObject(data);
+            if (state.bookmarks.some(function (bookmark) {
+              return bookmark.id === id;
+            })) state.recipe.bookmarked = true;else state.recipe.bookmarked = false;
             _context.next = 12;
             break;
 
@@ -1039,7 +1130,7 @@ var loadRecipe = /*#__PURE__*/function () {
   return function loadRecipe(_x) {
     return _ref.apply(this, arguments);
   };
-}(); ///////////////////////////////////////////////////////////////////// SEARCH FUNCTINOALITY
+}(); ///////////////////////////////////////////////////////////////////// LOAD SEARCH RESULTS
 // FUNCTIONALITY => Searches for recipes based on search input (query)
 
 
@@ -1055,34 +1146,38 @@ var loadSearchResults = /*#__PURE__*/function () {
             _context2.prev = 0;
             state.search.query = query;
             _context2.next = 4;
-            return (0, _helpers.getJSON)("".concat(_config.API_URL, "?search=").concat(query));
+            return (0, _helpers.AJAX)("".concat(_config.API_URL, "?search=").concat(query, "&key=").concat(_config.KEY));
 
           case 4:
             data = _context2.sent;
             // DOES => Gets recipe data from search query and returns a new array with new object
             state.search.results = data.data.recipes.map(function (rec) {
-              return {
+              return _objectSpread({
                 id: rec.id,
                 title: rec.title,
                 publisher: rec.publisher,
                 image: rec.image_url
-              };
-            });
-            _context2.next = 12;
+              }, rec.key && {
+                key: rec.key
+              });
+            }); // DOES => When loading a new search, the page will reset to 1
+
+            state.search.page = 1;
+            _context2.next = 13;
             break;
 
-          case 8:
-            _context2.prev = 8;
+          case 9:
+            _context2.prev = 9;
             _context2.t0 = _context2["catch"](0);
             console.log("".concat(_context2.t0, " \uD83D\uDCA5\uD83D\uDCA5\uD83D\uDCA5"));
             throw _context2.t0;
 
-          case 12:
+          case 13:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[0, 8]]);
+    }, _callee2, null, [[0, 9]]);
   }));
 
   return function loadSearchResults(_x2) {
@@ -1108,12 +1203,134 @@ exports.getSearchResutlsPage = getSearchResutlsPage;
 
 var updateServings = function updateServings(newServings) {
   state.recipe.ingredients.forEach(function (ing) {
-    ing.quantity = ing.quantity * newServings / state.recipe.servings; // newQty = oldQty * newServings / oldServings
+    ing.quantity = ing.quantity * newServings / state.recipe.servings;
   });
   state.recipe.servings = newServings;
-};
+}; ///////////////////////////////////////////////////////////////////// PERSIST BOOKMARKS
+// FUNCTIONALITY => Keeps bookmarks data in local storage to persist page reloads
+
 
 exports.updateServings = updateServings;
+
+var persistBookmarks = function persistBookmarks() {
+  localStorage.setItem("bookmarks", JSON.stringify(state.bookmarks));
+}; ///////////////////////////////////////////////////////////////////// ADD BOOKMARK
+// FUNCTIONALITY => Adds recipe to the bookmarks
+
+
+var addBookmark = function addBookmark(recipe) {
+  // DOES => Adds to bookmarks list
+  state.bookmarks.push(recipe); // DOES => Bookmarks recipe
+
+  if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+  persistBookmarks();
+}; ///////////////////////////////////////////////////////////////////// REMOVE BOOKMARK
+// FUNCTIONALITY => Removes recipe from the bookmarks
+
+
+exports.addBookmark = addBookmark;
+
+var removeBookmark = function removeBookmark(id) {
+  var index = state.bookmarks.findIndex(function (el) {
+    return el.id === id;
+  }); // DOES => Removes from bookmarks list
+
+  state.bookmarks.splice(index, 1); // DOES => Unbookmarks recipe
+
+  if (id === state.recipe.id) state.recipe.bookmarked = false;
+  persistBookmarks();
+}; ///////////////////////////////////////////////////////////////////// INIT
+
+
+exports.removeBookmark = removeBookmark;
+
+var init = function init() {
+  var storage = localStorage.getItem("bookmarks");
+  if (storage) state.bookmarks = JSON.parse(storage);
+};
+
+init(); ///////////////////////////////////////////////////////////////////// CLEAR BOOKMARKS
+
+var clearBookmarks = function clearBookmarks() {
+  localStorage.clear("bookmarks");
+}; // clearBookmarks();
+///////////////////////////////////////////////////////////////////// UPLOAD RECIPE
+
+
+var uploadRecipe = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(newRecipe) {
+    var ingredients, recipe, data;
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.prev = 0;
+            // DOES => Gets ingredients from array filtering entries which 1st element starts with 'ingredient' and 2nd is not empty
+            ingredients = Object.entries(newRecipe).filter(function (entry) {
+              return entry[0].startsWith("ingredient") && entry[1] !== "";
+            }).map(function (ing) {
+              // DOES => Replaces spaces with empty strings and seperates each element by the comma; returning each element as a keys of the ingredients object...
+              var ingArr = ing[1].split(",").map(function (el) {
+                return el.trim();
+              }); // DOES => ... and checks if lenght of array is not 3 elements, then throws error
+
+              if (ingArr.length !== 3) throw new Error("Wrong ingredient format. Please use the correct format");
+
+              var _ingArr = _slicedToArray(ingArr, 3),
+                  quantity = _ingArr[0],
+                  unit = _ingArr[1],
+                  description = _ingArr[2]; // DOES => Converts quantity string into number. If no quantity, returns null
+
+
+              return {
+                quantity: quantity ? +quantity : null,
+                unit: unit,
+                description: description
+              };
+            }); // FUNCTIONALITY => Converts recipe into new object ready to send to API
+
+            recipe = {
+              title: newRecipe.title,
+              source_url: newRecipe.sourceUrl,
+              image_url: newRecipe.image,
+              publisher: newRecipe.publisher,
+              cooking_time: +newRecipe.cookingTime,
+              servings: +newRecipe.servings,
+              ingredients: ingredients
+            };
+            console.log(recipe); // FUNCTIONALITY => Sends new recipe data to API
+
+            _context3.next = 6;
+            return (0, _helpers.AJAX)("".concat(_config.API_URL, "?key=").concat(_config.KEY), recipe);
+
+          case 6:
+            data = _context3.sent;
+            // DOES => Adds recipe to the state
+            state.recipe = createRecipeObject(data); // DOES => Automatically bookmarks created recipe
+
+            addBookmark(state.recipe);
+            _context3.next = 14;
+            break;
+
+          case 11:
+            _context3.prev = 11;
+            _context3.t0 = _context3["catch"](0);
+            throw _context3.t0;
+
+          case 14:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, null, [[0, 11]]);
+  }));
+
+  return function uploadRecipe(_x3) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+
+exports.uploadRecipe = uploadRecipe;
 },{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js","./config.js":"src/js/config.js","./helpers.js":"src/js/helpers.js"}],"src/img/icons.svg":[function(require,module,exports) {
 module.exports = "/icons.ae3c38d5.svg";
 },{}],"src/js/views/view.js":[function(require,module,exports) {
@@ -1150,11 +1367,15 @@ var View = /*#__PURE__*/function () {
     value: //////////////////////////////////////////////////// RENDER METHOD
     // FUNCTIONALITY => Stores data received from controller.showRecipe
     function render(data) {
+      var _render = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
       // DOES => Guard clause. If there is no data or if data is an empty array, simply return and display error message
       if (!data || Array.isArray(data) && data.length === 0) return this.renderError();
       this._data = data;
 
       var markup = this._generateMarkup();
+
+      if (!_render) return markup;
 
       this._clear(); // DOES => Inserts markup var into recipe container (.recipe) HMTL, rendering the recipe
 
@@ -1175,11 +1396,9 @@ var View = /*#__PURE__*/function () {
       var newElements = Array.from(newDOM.querySelectorAll("*"));
       var currElements = Array.from(this._parentElement.querySelectorAll("*"));
       newElements.forEach(function (newEl, i) {
-        var currEl = currElements[i];
-        console.log(currEl, newEl.isEqualNode(currEl)); // DOES => Updates changed text
+        var currEl = currElements[i]; // DOES => Updates changed text
 
         if (!newEl.isEqualNode(currEl) && newEl.firstChild.nodeValue.trim() !== "") {
-          // console.log("👌", newEl.firstChild.nodeValue.trim());
           currEl.textContent = newEl.textContent;
         } // DOES => Updates changed attributes
 
@@ -1697,12 +1916,22 @@ var RecipeView = /*#__PURE__*/function (_View) {
         var updateTo = btn.dataset.updateTo;
         if (+updateTo > 0) handler(+updateTo);
       });
+    } //////////////////////////////////////////////////// ADD HANDLER ADD BOOKMARK
+
+  }, {
+    key: "addHandlerAddBookmark",
+    value: function addHandlerAddBookmark(handler) {
+      this._parentElement.addEventListener("click", function (e) {
+        var btn = e.target.closest(".btn--bookmark");
+        if (!btn) return;
+        handler();
+      });
     } //////////////////////////////////////////////////// GENERATE MARKUP METHOD
 
   }, {
     key: "_generateMarkup",
     value: function _generateMarkup() {
-      return "\n    <figure class=\"recipe__fig\">\n          <img src=\"".concat(this._data.image, "\" alt=\"").concat(this._data.title, "\" class=\"recipe__img\" />\n          <h1 class=\"recipe__title\">\n            <span>").concat(this._data.title, "</span>\n          </h1>\n        </figure>\n\n        <div class=\"recipe__details\">\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-clock\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--minutes\">").concat(this._data.cookingTime, "</span>\n            <span class=\"recipe__info-text\">minutes</span>\n          </div>\n\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-users\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--people\">").concat(this._data.servings, "</span>\n            <span class=\"recipe__info-text\">servings</span>\n\n            <div class=\"recipe__info-buttons\">\n              <button class=\"btn--tiny btn--update-servings\" data-update-to=\"").concat(this._data.servings - 1, "\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-minus-circle\"></use>\n                </svg>\n              </button>\n              <button class=\"btn--tiny btn--update-servings\" data-update-to=\"").concat(this._data.servings + 1, "\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-plus-circle\"></use>\n                </svg>\n              </button>\n            </div>\n          </div>\n\n          <div class=\"recipe__user-generated\">\n          </div>\n          <button class=\"btn--round\">\n            <svg class=\"\">\n              <use href=\"").concat(_icons.default, "#icon-bookmark-fill\"></use>\n            </svg>\n          </button>\n        </div>\n\n        <div class=\"recipe__ingredients\">\n          <h2 class=\"heading--2\">Recipe ingredients</h2>\n          <ul class=\"recipe__ingredient-list\">\n          ").concat(this._data.ingredients.map(this._generateMarkupIngredient).join(""), "            \n          </ul>\n        </div>\n\n        <div class=\"recipe__directions\">\n          <h2 class=\"heading--2\">How to cook it</h2>\n          <p class=\"recipe__directions-text\">\n            This recipe was carefully designed and tested by\n            <span class=\"recipe__publisher\">").concat(this._data.publisher, "</span>. Please check out\n            directions at their website.\n          </p>\n          <a\n            class=\"btn--small recipe__btn\"\n            href=\"").concat(this._data.sourceUrl, "\"\n            target=\"_blank\"\n          >\n            <span>Directions</span>\n            <svg class=\"search__icon\">\n              <use href=\"").concat(_icons.default, "#icon-arrow-right\"></use>\n            </svg>\n          </a>\n        </div>");
+      return "\n    <figure class=\"recipe__fig\">\n          <img src=\"".concat(this._data.image, "\" alt=\"").concat(this._data.title, "\" class=\"recipe__img\" />\n          <h1 class=\"recipe__title\">\n            <span>").concat(this._data.title, "</span>\n          </h1>\n        </figure>\n\n        <div class=\"recipe__details\">\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-clock\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--minutes\">").concat(this._data.cookingTime, "</span>\n            <span class=\"recipe__info-text\">minutes</span>\n          </div>\n\n          <div class=\"recipe__info\">\n            <svg class=\"recipe__info-icon\">\n              <use href=\"").concat(_icons.default, "#icon-users\"></use>\n            </svg>\n            <span class=\"recipe__info-data recipe__info-data--people\">").concat(this._data.servings, "</span>\n            <span class=\"recipe__info-text\">servings</span>\n\n            <div class=\"recipe__info-buttons\">\n              <button class=\"btn--tiny btn--update-servings\" data-update-to=\"").concat(this._data.servings - 1, "\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-minus-circle\"></use>\n                </svg>\n              </button>\n              <button class=\"btn--tiny btn--update-servings\" data-update-to=\"").concat(this._data.servings + 1, "\">\n                <svg>\n                  <use href=\"").concat(_icons.default, "#icon-plus-circle\"></use>\n                </svg>\n              </button>\n            </div>\n          </div>\n\n          <div class=\"recipe__user-generated ").concat(this._data.key ? "" : "hidden", "\">\n            <svg>\n              <use href=\"").concat(_icons.default, "#icon-user\"></use>\n            </svg>\n          </div>\n          <button class=\"btn--round btn--bookmark\">\n            <svg class=\"\">\n              <use href=\"").concat(_icons.default, "#icon-bookmark\"></use>\n            </svg>\n          </button>\n        </div>\n\n        <div class=\"recipe__ingredients\">\n          <h2 class=\"heading--2\">Recipe ingredients</h2>\n          <ul class=\"recipe__ingredient-list\">\n          ").concat(this._data.ingredients.map(this._generateMarkupIngredient).join(""), "            \n          </ul>\n        </div>\n\n        <div class=\"recipe__directions\">\n          <h2 class=\"heading--2\">How to cook it</h2>\n          <p class=\"recipe__directions-text\">\n            This recipe was carefully designed and tested by\n            <span class=\"recipe__publisher\">").concat(this._data.publisher, "</span>. Please check out\n            directions at their website.\n          </p>\n          <a\n            class=\"btn--small recipe__btn\"\n            href=\"").concat(this._data.sourceUrl, "\"\n            target=\"_blank\"\n          >\n            <span>Directions</span>\n            <svg class=\"search__icon\">\n              <use href=\"").concat(_icons.default, "#icon-arrow-right\"></use>\n            </svg>\n          </a>\n        </div>");
     } //////////////////////////////////////////////////// GENERATE MARKUP INGREDIENT METHOD
 
   }, {
@@ -1779,7 +2008,7 @@ var SearchView = /*#__PURE__*/function () {
 var _default = new SearchView();
 
 exports.default = _default;
-},{}],"src/js/views/resultsView.js":[function(require,module,exports) {
+},{}],"src/js/views/previewView.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1818,6 +2047,82 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 // DOES => Imports icons to be used in markup
+///////////////////////////////////////////////////////////////////// PREVIEW VIEW
+var PreviewView = /*#__PURE__*/function (_View) {
+  _inherits(PreviewView, _View);
+
+  var _super = _createSuper(PreviewView);
+
+  function PreviewView() {
+    var _this;
+
+    _classCallCheck(this, PreviewView);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+
+    _defineProperty(_assertThisInitialized(_this), "_parentElement", "");
+
+    return _this;
+  }
+
+  _createClass(PreviewView, [{
+    key: "_generateMarkup",
+    value: //////////////////////////////////////////////////// GENERATE MARKUP
+    // FUNCTIONALITY => Generates markup getting data from search results and looping through all of them
+    function _generateMarkup() {
+      var id = window.location.hash.slice(1);
+      return "\n      <li class=\"preview\">\n        <a class=\"preview__link ".concat(this._data.id === id ? "preview__link--active" : "", "\" href=\"#").concat(this._data.id, "\">\n          <figure class=\"preview__fig\">\n            <img src=\"").concat(this._data.image, "\" alt=\"Preview\" />\n          </figure>\n          <div class=\"preview__data\">\n            <h4 class=\"preview__title\">").concat(this._data.title, "</h4>\n            <p class=\"preview__publisher\">").concat(this._data.publisher, "</p>\n            <div class=\"preview__user-generated ").concat(this._data.key ? "" : "hidden", "\">\n              <svg>\n              <use href=\"").concat(_icons.default, "#icon-user\"></use>\n              </svg>\n            </div>\n          </div>\n        </a>\n      </li>\n    ");
+    }
+  }]);
+
+  return PreviewView;
+}(_view.default);
+
+var _default = new PreviewView();
+
+exports.default = _default;
+},{"./view":"src/js/views/view.js","../../img/icons.svg":"src/img/icons.svg"}],"src/js/views/resultsView.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _view = _interopRequireDefault(require("./view"));
+
+var _previewView = _interopRequireDefault(require("./previewView"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 ///////////////////////////////////////////////////////////////////// RESULTS VIEW
 var ResultsView = /*#__PURE__*/function (_View) {
   _inherits(ResultsView, _View);
@@ -1846,18 +2151,11 @@ var ResultsView = /*#__PURE__*/function (_View) {
 
   _createClass(ResultsView, [{
     key: "_generateMarkup",
-    value: //////////////////////////////////////////////////// GENERATE MARKUP
-    // FUNCTIONALITY => Generates markup getting data from search results and looping through all of them
+    value: //////////////////////////////////////////////////// GENERATE MARKUP PREVIEW
     function _generateMarkup() {
-      console.log(this._data);
-      return this._data.map(this._generateMarkupPreview).join("");
-    } //////////////////////////////////////////////////// GENERATE MARKUP PREVIEW
-
-  }, {
-    key: "_generateMarkupPreview",
-    value: function _generateMarkupPreview(result) {
-      var id = window.location.hash.slice(1);
-      return "\n      <li class=\"preview\">\n        <a class=\"preview__link ".concat(result.id === id ? "preview__link--active" : "", "\" href=\"#").concat(result.id, "\">\n          <figure class=\"preview__fig\">\n            <img src=\"").concat(result.image, "\" alt=\"Preview\" />\n          </figure>\n          <div class=\"preview__data\">\n            <h4 class=\"preview__title\">").concat(result.title, "</h4>\n            <p class=\"preview__publisher\">").concat(result.publisher, "</p>\n          </div>\n        </a>\n      </li>\n    ");
+      return this._data.map(function (result) {
+        return _previewView.default.render(result, false);
+      }).join("");
     }
   }]);
 
@@ -1867,7 +2165,7 @@ var ResultsView = /*#__PURE__*/function (_View) {
 var _default = new ResultsView();
 
 exports.default = _default;
-},{"./view":"src/js/views/view.js","../../img/icons.svg":"src/img/icons.svg"}],"src/js/views/paginationView.js":[function(require,module,exports) {
+},{"./view":"src/js/views/view.js","./previewView":"src/js/views/previewView.js"}],"src/js/views/paginationView.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1945,8 +2243,7 @@ var PaginationView = /*#__PURE__*/function (_View) {
     value: function _generateMarkup() {
       var currPage = this._data.page; // DOES => Calculates number of pages dividing the number of search results by the number of resutls per page and rounding the result up to the next integer
 
-      var numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
-      console.log(numPages); // FUNCTIONALITY => First page and there are mor pages
+      var numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage); // FUNCTIONALITY => First page and there are mor pages
       // DOES => If current page equals 1, and the total number of pages is greater than 1; it means we are on the first page. Therefore, only display the next page button
 
       if (currPage === 1 && numPages > 1) {
@@ -1981,6 +2278,225 @@ var PaginationView = /*#__PURE__*/function (_View) {
 }(_view.default);
 
 var _default = new PaginationView();
+
+exports.default = _default;
+},{"./view":"src/js/views/view.js","../../img/icons.svg":"src/img/icons.svg"}],"src/js/views/bookmarksView.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _view = _interopRequireDefault(require("./view"));
+
+var _previewView = _interopRequireDefault(require("./previewView"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+///////////////////////////////////////////////////////////////////// BOOKMARKS VIEW
+var BookmarksView = /*#__PURE__*/function (_View) {
+  _inherits(BookmarksView, _View);
+
+  var _super = _createSuper(BookmarksView);
+
+  function BookmarksView() {
+    var _this;
+
+    _classCallCheck(this, BookmarksView);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+
+    _defineProperty(_assertThisInitialized(_this), "_parentElement", document.querySelector(".bookmarks__list"));
+
+    _defineProperty(_assertThisInitialized(_this), "_errorMessage", "No bookmarks yet. Find a recipe that you like.");
+
+    _defineProperty(_assertThisInitialized(_this), "_message", "");
+
+    return _this;
+  }
+
+  _createClass(BookmarksView, [{
+    key: "addHandlerRender",
+    value: //////////////////////////////////////////////////// ADD HANDLER RENDER
+    function addHandlerRender(handler) {
+      window.addEventListener("load", handler);
+    } //////////////////////////////////////////////////// GENERATE MARKUP
+    // FUNCTIONALITY => Generates markup getting data from bookmarks and looping through all of them
+
+  }, {
+    key: "_generateMarkup",
+    value: function _generateMarkup() {
+      return this._data.map(function (bookmark) {
+        return _previewView.default.render(bookmark, false);
+      }).join("");
+    }
+  }]);
+
+  return BookmarksView;
+}(_view.default);
+
+var _default = new BookmarksView();
+
+exports.default = _default;
+},{"./view":"src/js/views/view.js","./previewView":"src/js/views/previewView.js"}],"src/js/views/addRecipeView.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _view = _interopRequireDefault(require("./view"));
+
+var _icons = _interopRequireDefault(require("../../img/icons.svg"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// DOES => Imports icons to be used in markup
+///////////////////////////////////////////////////////////////////// PAGINATION VIEW
+var AddRecipeView = /*#__PURE__*/function (_View) {
+  _inherits(AddRecipeView, _View);
+
+  var _super = _createSuper(AddRecipeView);
+
+  //////////////////////////////////////////////////// PROTECTED METHODS
+  //////////////////////////////////////////////////// CONSTRUCTOR
+  function AddRecipeView() {
+    var _this;
+
+    _classCallCheck(this, AddRecipeView);
+
+    _this = _super.call(this);
+
+    _defineProperty(_assertThisInitialized(_this), "_parentElement", document.querySelector(".upload"));
+
+    _defineProperty(_assertThisInitialized(_this), "_message", "Recipe successfully uploaded");
+
+    _defineProperty(_assertThisInitialized(_this), "_window", document.querySelector(".add-recipe-window"));
+
+    _defineProperty(_assertThisInitialized(_this), "_overlay", document.querySelector(".overlay"));
+
+    _defineProperty(_assertThisInitialized(_this), "_btnOpen", document.querySelector(".nav__btn--add-recipe"));
+
+    _defineProperty(_assertThisInitialized(_this), "_btnClose", document.querySelector(".btn--close-modal"));
+
+    _this._addHandlerShowWindow();
+
+    _this._addHandlerHideWindow();
+
+    return _this;
+  } //////////////////////////////////////////////////// TOGGLE WINDOW
+
+
+  _createClass(AddRecipeView, [{
+    key: "toggleWindow",
+    value: function toggleWindow() {
+      this._overlay.classList.toggle("hidden");
+
+      this._window.classList.toggle("hidden");
+    } //////////////////////////////// ADD HANDLER SHOW WINDOW
+
+  }, {
+    key: "_addHandlerShowWindow",
+    value: function _addHandlerShowWindow() {
+      this._btnOpen.addEventListener("click", this.toggleWindow.bind(this));
+    } //////////////////////////////// ADD HANDLER HIDE WINDOW
+
+  }, {
+    key: "_addHandlerHideWindow",
+    value: function _addHandlerHideWindow() {
+      this._btnClose.addEventListener("click", this.toggleWindow.bind(this));
+
+      this._overlay.addEventListener("click", this.toggleWindow.bind(this));
+    } //////////////////////////////////////////////////// ADD HANDLER UPLOAD
+
+  }, {
+    key: "addHandlerUpload",
+    value: function addHandlerUpload(handler) {
+      this._parentElement.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        var dataArr = _toConsumableArray(new FormData(this));
+
+        var data = Object.fromEntries(dataArr);
+        handler(data);
+      });
+    } //////////////////////////////////////////////////// GENERATE MARKUP
+
+  }, {
+    key: "_generateMarkup",
+    value: function _generateMarkup() {}
+  }]);
+
+  return AddRecipeView;
+}(_view.default);
+
+var _default = new AddRecipeView();
 
 exports.default = _default;
 },{"./view":"src/js/views/view.js","../../img/icons.svg":"src/img/icons.svg"}],"node_modules/core-js/internals/global.js":[function(require,module,exports) {
@@ -14472,6 +14988,8 @@ module.exports = require('../internals/path');
 
 var model = _interopRequireWildcard(require("./model.js"));
 
+var _config = require("./config.js");
+
 var _recipeView = _interopRequireDefault(require("./views/recipeView.js"));
 
 var _searchView = _interopRequireDefault(require("./views/searchView.js"));
@@ -14479,6 +14997,10 @@ var _searchView = _interopRequireDefault(require("./views/searchView.js"));
 var _resultsView = _interopRequireDefault(require("./views/resultsView.js"));
 
 var _paginationView = _interopRequireDefault(require("./views/paginationView.js"));
+
+var _bookmarksView = _interopRequireDefault(require("./views/bookmarksView.js"));
+
+var _addRecipeView = _interopRequireDefault(require("./views/addRecipeView.js"));
 
 require("core-js/stable");
 
@@ -14538,22 +15060,24 @@ var controlRecipes = /*#__PURE__*/function () {
             // DOES => Takes data loaded in model.state.recipe and passes it into recipeView.render method...
             _recipeView.default.render(model.state.recipe);
 
-            _context.next = 14;
+            _bookmarksView.default.update(model.state.bookmarks);
+
+            _context.next = 15;
             break;
 
-          case 11:
-            _context.prev = 11;
+          case 12:
+            _context.prev = 12;
             _context.t0 = _context["catch"](0);
 
             // DOES => ... or displays error message
             _recipeView.default.renderError();
 
-          case 14:
+          case 15:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 11]]);
+    }, _callee, null, [[0, 12]]);
   }));
 
   return function controlRecipes() {
@@ -14632,223 +15156,270 @@ var controlServings = function controlServings(newServings) {
   // DOES => Update() only refreshes text and attr instead of reloading the whole page
 
   _recipeView.default.update(model.state.recipe);
-}; ///////////////////////////////////////////////////////////////////// INIT FUNC
+}; ///////////////////////////////////////////////////////////////////// CONTROL ADD BOOKMARK
+
+
+var controlAddBookmark = function controlAddBookmark() {
+  // FUNCTIONALITY => If recipe is not bookmarked, bookmark recipe
+  if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe); // FUNCTIONALITY => If recipe is bookmarked, remove bookmark
+  else model.removeBookmark(model.state.recipe.id);
+
+  _recipeView.default.update(model.state.recipe); // FUNCTIONALITY => Render bookmarks
+
+
+  _bookmarksView.default.render(model.state.bookmarks);
+}; ///////////////////////////////////////////////////////////////////// CONTROL BOOKMARKS
+
+
+var controlBookmarks = function controlBookmarks() {
+  _bookmarksView.default.render(model.state.bookmarks);
+}; ///////////////////////////////////////////////////////////////////// CONTROL ADD RECIPE
+
+
+var controlAddRecipe = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(newRecipe) {
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.prev = 0;
+
+            // FUNCTIONALITY => Render spinner
+            _addRecipeView.default.renderSpinner(); // FUNCTIONALITY => Upload new recipe
+
+
+            _context3.next = 4;
+            return model.uploadRecipe(newRecipe);
+
+          case 4:
+            console.log(model.state.recipe); // FUNCTIONALITY => Render new recipe
+
+            _recipeView.default.render(model.state.recipe); // FUNCTIONALITY => Display success message
+
+
+            _addRecipeView.default.renderMessage(); // FUNCTIONALITY => Render bookmark view
+
+
+            _bookmarksView.default.render(model.state.bookmarks); // FUNCTIONALITY => Change ID in URL
+
+
+            window.history.pushState(null, "", "#".concat(model.state.recipe.id)); // FUNCTIONALITY => Close form window
+
+            setTimeout(function () {
+              _addRecipeView.default.toggleWindow();
+            }, _config.MODAL_CLOSE_SEC * 1000);
+            _context3.next = 16;
+            break;
+
+          case 12:
+            _context3.prev = 12;
+            _context3.t0 = _context3["catch"](0);
+            console.error("💥", _context3.t0);
+
+            _addRecipeView.default.renderError(_context3.t0.message);
+
+          case 16:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, null, [[0, 12]]);
+  }));
+
+  return function controlAddRecipe(_x) {
+    return _ref3.apply(this, arguments);
+  };
+}(); ///////////////////////////////////////////////////////////////////// INIT FUNC
 
 
 var init = function init() {
+  _bookmarksView.default.addHandlerRender(controlBookmarks);
+
   _recipeView.default.addHandlerRender(controlRecipes);
 
   _recipeView.default.addHandlerUpdateServings(controlServings);
 
+  _recipeView.default.addHandlerAddBookmark(controlAddBookmark);
+
   _searchView.default.addHandlerSearch(controlSearchResults);
 
   _paginationView.default.addHandlerClick(controlPagination);
+
+  _addRecipeView.default.addHandlerUpload(controlAddRecipe);
 };
 
 init();
-},{"./model.js":"src/js/model.js","./views/recipeView.js":"src/js/views/recipeView.js","./views/searchView.js":"src/js/views/searchView.js","./views/resultsView.js":"src/js/views/resultsView.js","./views/paginationView.js":"src/js/views/paginationView.js","core-js/stable":"node_modules/core-js/stable/index.js","regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","regenerator-runtime":"node_modules/regenerator-runtime/runtime.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
-var global = arguments[3];
-var OVERLAY_ID = '__parcel__error__overlay__';
-var OldModule = module.bundle.Module;
-
-function Module(moduleName) {
-  OldModule.call(this, moduleName);
-  this.hot = {
-    data: module.bundle.hotData,
-    _acceptCallbacks: [],
-    _disposeCallbacks: [],
-    accept: function (fn) {
-      this._acceptCallbacks.push(fn || function () {});
-    },
-    dispose: function (fn) {
-      this._disposeCallbacks.push(fn);
-    }
-  };
-  module.bundle.hotData = null;
-}
-
-module.bundle.Module = Module;
-var checkedAssets, assetsToAccept;
-var parent = module.bundle.parent;
-
-if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
-  var hostname = "" || location.hostname;
-  var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60233" + '/');
-
-  ws.onmessage = function (event) {
-    checkedAssets = {};
-    assetsToAccept = [];
-    var data = JSON.parse(event.data);
-
-    if (data.type === 'update') {
-      var handled = false;
-      data.assets.forEach(function (asset) {
-        if (!asset.isNew) {
-          var didAccept = hmrAcceptCheck(global.parcelRequire, asset.id);
-
-          if (didAccept) {
-            handled = true;
-          }
-        }
-      }); // Enable HMR for CSS by default.
-
-      handled = handled || data.assets.every(function (asset) {
-        return asset.type === 'css' && asset.generated.js;
-      });
-
-      if (handled) {
-        console.clear();
-        data.assets.forEach(function (asset) {
-          hmrApply(global.parcelRequire, asset);
-        });
-        assetsToAccept.forEach(function (v) {
-          hmrAcceptRun(v[0], v[1]);
-        });
-      } else if (location.reload) {
-        // `location` global exists in a web worker context but lacks `.reload()` function.
-        location.reload();
-      }
-    }
-
-    if (data.type === 'reload') {
-      ws.close();
-
-      ws.onclose = function () {
-        location.reload();
-      };
-    }
-
-    if (data.type === 'error-resolved') {
-      console.log('[parcel] ✨ Error resolved');
-      removeErrorOverlay();
-    }
-
-    if (data.type === 'error') {
-      console.error('[parcel] 🚨  ' + data.error.message + '\n' + data.error.stack);
-      removeErrorOverlay();
-      var overlay = createErrorOverlay(data);
-      document.body.appendChild(overlay);
-    }
-  };
-}
-
-function removeErrorOverlay() {
-  var overlay = document.getElementById(OVERLAY_ID);
-
-  if (overlay) {
-    overlay.remove();
-  }
-}
-
-function createErrorOverlay(data) {
-  var overlay = document.createElement('div');
-  overlay.id = OVERLAY_ID; // html encode message and stack trace
-
-  var message = document.createElement('div');
-  var stackTrace = document.createElement('pre');
-  message.innerText = data.error.message;
-  stackTrace.innerText = data.error.stack;
-  overlay.innerHTML = '<div style="background: black; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; opacity: 0.85; font-family: Menlo, Consolas, monospace; z-index: 9999;">' + '<span style="background: red; padding: 2px 4px; border-radius: 2px;">ERROR</span>' + '<span style="top: 2px; margin-left: 5px; position: relative;">🚨</span>' + '<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">' + message.innerHTML + '</div>' + '<pre>' + stackTrace.innerHTML + '</pre>' + '</div>';
-  return overlay;
-}
-
-function getParents(bundle, id) {
-  var modules = bundle.modules;
-
-  if (!modules) {
-    return [];
-  }
-
-  var parents = [];
-  var k, d, dep;
-
-  for (k in modules) {
-    for (d in modules[k][1]) {
-      dep = modules[k][1][d];
-
-      if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) {
-        parents.push(k);
-      }
-    }
-  }
-
-  if (bundle.parent) {
-    parents = parents.concat(getParents(bundle.parent, id));
-  }
-
-  return parents;
-}
-
-function hmrApply(bundle, asset) {
-  var modules = bundle.modules;
-
-  if (!modules) {
-    return;
-  }
-
-  if (modules[asset.id] || !bundle.parent) {
-    var fn = new Function('require', 'module', 'exports', asset.generated.js);
-    asset.isNew = !modules[asset.id];
-    modules[asset.id] = [fn, asset.deps];
-  } else if (bundle.parent) {
-    hmrApply(bundle.parent, asset);
-  }
-}
-
-function hmrAcceptCheck(bundle, id) {
-  var modules = bundle.modules;
-
-  if (!modules) {
-    return;
-  }
-
-  if (!modules[id] && bundle.parent) {
-    return hmrAcceptCheck(bundle.parent, id);
-  }
-
-  if (checkedAssets[id]) {
-    return;
-  }
-
-  checkedAssets[id] = true;
-  var cached = bundle.cache[id];
-  assetsToAccept.push([bundle, id]);
-
-  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
-    return true;
-  }
-
-  return getParents(global.parcelRequire, id).some(function (id) {
-    return hmrAcceptCheck(global.parcelRequire, id);
-  });
-}
-
-function hmrAcceptRun(bundle, id) {
-  var cached = bundle.cache[id];
-  bundle.hotData = {};
-
-  if (cached) {
-    cached.hot.data = bundle.hotData;
-  }
-
-  if (cached && cached.hot && cached.hot._disposeCallbacks.length) {
-    cached.hot._disposeCallbacks.forEach(function (cb) {
-      cb(bundle.hotData);
-    });
-  }
-
-  delete bundle.cache[id];
-  bundle(id);
-  cached = bundle.cache[id];
-
-  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
-    cached.hot._acceptCallbacks.forEach(function (cb) {
-      cb();
-    });
-
-    return true;
-  }
-}
+},{"./model.js":"src/js/model.js","./config.js":"src/js/config.js","./views/recipeView.js":"src/js/views/recipeView.js","./views/searchView.js":"src/js/views/searchView.js","./views/resultsView.js":"src/js/views/resultsView.js","./views/paginationView.js":"src/js/views/paginationView.js","./views/bookmarksView.js":"src/js/views/bookmarksView.js","./views/addRecipeView.js":"src/js/views/addRecipeView.js","core-js/stable":"node_modules/core-js/stable/index.js","regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","regenerator-runtime":"node_modules/regenerator-runtime/runtime.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+// var OVERLAY_ID = '__parcel__error__overlay__';
+// var OldModule = module.bundle.Module;
+// function Module(moduleName) {
+//   OldModule.call(this, moduleName);
+//   this.hot = {
+//     data: module.bundle.hotData,
+//     _acceptCallbacks: [],
+//     _disposeCallbacks: [],
+//     accept: function (fn) {
+//       this._acceptCallbacks.push(fn || function () {});
+//     },
+//     dispose: function (fn) {
+//       this._disposeCallbacks.push(fn);
+//     }
+//   };
+//   module.bundle.hotData = null;
+// }
+// module.bundle.Module = Module;
+// var checkedAssets, assetsToAccept;
+// var parent = module.bundle.parent;
+// if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
+//   var hostname = process.env.HMR_HOSTNAME || location.hostname;
+//   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+//   var ws = new WebSocket(protocol + '://' + hostname + ':' + process.env.HMR_PORT + '/');
+//   ws.onmessage = function(event) {
+//     checkedAssets = {};
+//     assetsToAccept = [];
+//     var data = JSON.parse(event.data);
+//     if (data.type === 'update') {
+//       var handled = false;
+//       data.assets.forEach(function(asset) {
+//         if (!asset.isNew) {
+//           var didAccept = hmrAcceptCheck(global.parcelRequire, asset.id);
+//           if (didAccept) {
+//             handled = true;
+//           }
+//         }
+//       });
+//       // Enable HMR for CSS by default.
+//       handled = handled || data.assets.every(function(asset) {
+//         return asset.type === 'css' && asset.generated.js;
+//       });
+//       if (handled) {
+//         console.clear();
+//         data.assets.forEach(function (asset) {
+//           hmrApply(global.parcelRequire, asset);
+//         });
+//         assetsToAccept.forEach(function (v) {
+//           hmrAcceptRun(v[0], v[1]);
+//         });
+//       } else if (location.reload) { // `location` global exists in a web worker context but lacks `.reload()` function.
+//         location.reload();
+//       }
+//     }
+//     if (data.type === 'reload') {
+//       ws.close();
+//       ws.onclose = function () {
+//         location.reload();
+//       }
+//     }
+//     if (data.type === 'error-resolved') {
+//       console.log('[parcel] ✨ Error resolved');
+//       removeErrorOverlay();
+//     }
+//     if (data.type === 'error') {
+//       console.error('[parcel] 🚨  ' + data.error.message + '\n' + data.error.stack);
+//       removeErrorOverlay();
+//       var overlay = createErrorOverlay(data);
+//       document.body.appendChild(overlay);
+//     }
+//   };
+// }
+// function removeErrorOverlay() {
+//   var overlay = document.getElementById(OVERLAY_ID);
+//   if (overlay) {
+//     overlay.remove();
+//   }
+// }
+// function createErrorOverlay(data) {
+//   var overlay = document.createElement('div');
+//   overlay.id = OVERLAY_ID;
+//   // html encode message and stack trace
+//   var message = document.createElement('div');
+//   var stackTrace = document.createElement('pre');
+//   message.innerText = data.error.message;
+//   stackTrace.innerText = data.error.stack;
+//   overlay.innerHTML = (
+//     '<div style="background: black; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; opacity: 0.85; font-family: Menlo, Consolas, monospace; z-index: 9999;">' +
+//       '<span style="background: red; padding: 2px 4px; border-radius: 2px;">ERROR</span>' +
+//       '<span style="top: 2px; margin-left: 5px; position: relative;">🚨</span>' +
+//       '<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">' + message.innerHTML + '</div>' +
+//       '<pre>' + stackTrace.innerHTML + '</pre>' +
+//     '</div>'
+//   );
+//   return overlay;
+// }
+// function getParents(bundle, id) {
+//   var modules = bundle.modules;
+//   if (!modules) {
+//     return [];
+//   }
+//   var parents = [];
+//   var k, d, dep;
+//   for (k in modules) {
+//     for (d in modules[k][1]) {
+//       dep = modules[k][1][d];
+//       if (dep === id || (Array.isArray(dep) && dep[dep.length - 1] === id)) {
+//         parents.push(k);
+//       }
+//     }
+//   }
+//   if (bundle.parent) {
+//     parents = parents.concat(getParents(bundle.parent, id));
+//   }
+//   return parents;
+// }
+// function hmrApply(bundle, asset) {
+//   var modules = bundle.modules;
+//   if (!modules) {
+//     return;
+//   }
+//   if (modules[asset.id] || !bundle.parent) {
+//     var fn = new Function('require', 'module', 'exports', asset.generated.js);
+//     asset.isNew = !modules[asset.id];
+//     modules[asset.id] = [fn, asset.deps];
+//   } else if (bundle.parent) {
+//     hmrApply(bundle.parent, asset);
+//   }
+// }
+// function hmrAcceptCheck(bundle, id) {
+//   var modules = bundle.modules;
+//   if (!modules) {
+//     return;
+//   }
+//   if (!modules[id] && bundle.parent) {
+//     return hmrAcceptCheck(bundle.parent, id);
+//   }
+//   if (checkedAssets[id]) {
+//     return;
+//   }
+//   checkedAssets[id] = true;
+//   var cached = bundle.cache[id];
+//   assetsToAccept.push([bundle, id]);
+//   if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+//     return true;
+//   }
+//   return getParents(global.parcelRequire, id).some(function (id) {
+//     return hmrAcceptCheck(global.parcelRequire, id)
+//   });
+// }
+// function hmrAcceptRun(bundle, id) {
+//   var cached = bundle.cache[id];
+//   bundle.hotData = {};
+//   if (cached) {
+//     cached.hot.data = bundle.hotData;
+//   }
+//   if (cached && cached.hot && cached.hot._disposeCallbacks.length) {
+//     cached.hot._disposeCallbacks.forEach(function (cb) {
+//       cb(bundle.hotData);
+//     });
+//   }
+//   delete bundle.cache[id];
+//   bundle(id);
+//   cached = bundle.cache[id];
+//   if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+//     cached.hot._acceptCallbacks.forEach(function (cb) {
+//       cb();
+//     });
+//     return true;
+//   }
+// }
 },{}]},{},["node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/js/controller.js"], null)
 //# sourceMappingURL=/controller.e87f5190.js.map
