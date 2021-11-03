@@ -6,6 +6,15 @@ export default class View {
 	//////////////////////////////////////////////////// PROTECTED METHODS
 	_data;
 	//////////////////////////////////////////////////// RENDER METHOD
+	/**
+	 * Render the received object to the DOM
+	 * @param {Object | Object[]} data The data to be rendered (e.g. recipe)
+	 * @param {boolean} [render=true] If false create markup string instead of rendering to the DOM
+	 * @returns {undefined | string} A markup string is returnde if render=false
+	 * @this {Object} View instance
+	 * @author JK27
+	 * @todo Finish implementation
+	 */
 	// FUNCTIONALITY => Stores data received from controller.showRecipe
 	render(data, render = true) {
 		// DOES => Guard clause. If there is no data or if data is an empty array, simply return and display error message
